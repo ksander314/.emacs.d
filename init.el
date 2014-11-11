@@ -33,6 +33,7 @@
 (global-git-gutter-mode +1)
 
 (require-package 'google-translate)
+(require 'google-translate)
 (setq google-translate-default-target-language "ru")
 (setq google-translate-default-source-language "en")
 (global-set-key "\C-ct" 'google-translate-at-point)
