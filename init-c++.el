@@ -29,6 +29,7 @@
 (add-hook 'c++-mode-hook 'indentation-c++-mode-hook)
 (add-hook 'c++-mode-hook 'subword-mode)
 (add-hook 'c++-mode-hook 'which-function-mode)
+(add-hook 'c++-mode-hook 'hl-line-mode)
 (require 'whitespace)
 (setq whitespace-line-column 80)
 (setq whitespace-style '(face lines-tail tabs))
