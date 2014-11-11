@@ -16,6 +16,7 @@
 (require 'init-locale)
 (require 'init-theme)
 (require 'init-mercurial)
+(require 'init-git)
 (require 'init-hg-commit-message)
 (require-package 'ox-reveal)
 
@@ -28,9 +29,6 @@
   (load custom-file))
 (setq user-mail-address "olexander314@gmail.com")
 (setq user-login-name "Alexander Stepanenko")
-
-(require-package 'git-gutter)
-(global-git-gutter-mode +1)
 
 (require-package 'google-translate)
 (require 'google-translate)
