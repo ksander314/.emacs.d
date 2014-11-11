@@ -40,3 +40,5 @@
 (global-set-key "\C-cT" 'google-translate-query-translate)
 
 (defalias 'list-buffers 'ibuffer)
+
+(setq grep-command "grep -IHrn -e ")
