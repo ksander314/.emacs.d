@@ -50,5 +50,5 @@
      (define-key helm-gtags-mode-map (kbd "C-c g >") 'helm-gtags-next-history)))
 (add-hook 'c-mode-hook 'hs-minor-mode)
 (add-hook 'c++-mode-hook 'hs-minor-mode)
+(add-hook 'c++-mode-hook (lambda () (setq show-trailing-whitespace t)))
 (provide 'init-c++)
-(setq-default show-trailing-whitespace t)
