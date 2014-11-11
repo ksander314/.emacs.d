@@ -31,4 +31,9 @@
 (setq whitespace-style '(face lines-tail tabs))
 (add-hook 'haskell-mode-hook 'whitespace-mode)
 
+(after-load 'haskell-mode
+  (define-key haskell-mode-map (kbd "C-c C-c") 'haskell-compile))
+
+(setq haskell-compile-cabal-build-command "cd %s && ~/.cabal/bin/cabal build -j8 --ghc-option=-ferror-spans")
+
 (provide 'init-haskell)
