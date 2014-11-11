@@ -3,4 +3,7 @@
 
 (require-package 'magit)
 (global-set-key "\C-cgg" 'magit-status)
+
+(require-package 'git-messenger)
+
 (provide 'init-git)
