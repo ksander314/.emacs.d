@@ -5,5 +5,7 @@
 (global-set-key "\C-cgg" 'magit-status)
 
 (require-package 'git-messenger)
+(global-set-key (kbd "C-c g p") 'git-messenger:popup-message)
+(define-key git-messenger-map (kbd "m") 'git-messenger:copy-message)
 
 (provide 'init-git)
