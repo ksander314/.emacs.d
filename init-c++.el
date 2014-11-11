@@ -17,6 +17,7 @@
             flymake-err-line-patterns))
 (add-hook 'c++-mode-hook 'flymake-mode)
 (global-set-key (kbd "C-c f") 'flymake-display-err-menu-for-current-line)
+(global-set-key (kbd "C-c c") 'compile)
 (setq-default indent-tabs-mode nil)
 (setq-default c-basic-offset 4)
 (defun indentation-c++-mode-hook ()
