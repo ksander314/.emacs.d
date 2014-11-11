@@ -28,6 +28,7 @@
   (c-set-offset 'brace-list-open '0))
 (add-hook 'c++-mode-hook 'indentation-c++-mode-hook)
 (add-hook 'c++-mode-hook 'subword-mode)
+(add-hook 'c++-mode-hook 'which-function-mode)
 (require 'whitespace)
 (setq whitespace-line-column 80)
 (setq whitespace-style '(face lines-tail tabs))
