@@ -31,9 +31,18 @@
 (setq whitespace-style '(face lines-tail tabs))
 (add-hook 'haskell-mode-hook 'whitespace-mode)
 
-(after-load 'haskell-mode
-  (define-key haskell-mode-map (kbd "C-c C-c") 'haskell-compile))
+(eval-after-load "haskell-mode"
+  '(define-key haskell-mode-map (kbd "C-c C-c") 'haskell-compile))
+(eval-after-load "haskell-cabal"
+  '(define-key haskell-cabal-mode-map (kbd "C-c C-c") 'haskell-compile))
+(eval-after-load "haskell-mode"
+  '(progn
+     (define-key haskell-mode-map (kbd "C-c C-l") 'haskell-process-load-file)
+     (define-key haskell-mode-map (kbd "C-c C-b") 'haskell-interactive-switch)
+     (define-key haskell-mode-map (kbd "C-c C-t") 'haskell-process-do-type)
+     (define-key haskell-mode-map (kbd "C-c C-i") 'haskell-process-do-info)))
 
 (setq haskell-compile-cabal-build-command "cd %s && ~/.cabal/bin/cabal build -j8 --ghc-option=-ferror-spans")
+(setq haskell-process-path-cabal "~/.cabal/bin/cabal")
 
 (provide 'init-haskell)
