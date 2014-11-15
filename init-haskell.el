@@ -45,4 +45,6 @@
 (setq haskell-compile-cabal-build-command "cd %s && ~/.cabal/bin/cabal build -j8 --ghc-option=-ferror-spans")
 (setq haskell-process-path-cabal "~/.cabal/bin/cabal")
 
+(add-hook 'haskell-mode-hook (lambda () (setq show-trailing-whitespace t)))
+
 (provide 'init-haskell)
