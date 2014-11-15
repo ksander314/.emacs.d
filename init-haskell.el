@@ -46,5 +46,6 @@
 (setq haskell-process-path-cabal "~/.cabal/bin/cabal")
 
 (add-hook 'haskell-mode-hook (lambda () (setq show-trailing-whitespace t)))
+(add-hook 'haskell-mode-hook 'hl-line-mode)
 
 (provide 'init-haskell)
