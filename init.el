@@ -5,11 +5,12 @@
 (tool-bar-mode 0)
 (menu-bar-mode 0)
 
-(add-to-list 'load-path user-emacs-directory)
+(add-to-list 'load-path (expand-file-name "~/.emacs.d/lisp"))
 (require 'init-package)
 (require 'init-utils)
 (require 'init-font)
 (require 'init-flymake)
+(require 'init-gnus)
 (require 'init-c++)
 (require 'init-haskell)
 (require 'init-auto-complete)
