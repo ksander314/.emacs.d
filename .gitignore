@@ -7,3 +7,4 @@ elpa/*
 *.lock
 *.dat
 *.desktop
+custom.el
