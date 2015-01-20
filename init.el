@@ -40,4 +40,4 @@
 
 (defalias 'list-buffers 'ibuffer)
 
-(setq grep-command "grep -IHrn -e ")
+(setq grep-command "grep -IHrn -e \"\\([^[:alnum:]_]\\|^\\)\\([^[:alnum:]_]\\|$\\)\"")
