@@ -40,5 +40,5 @@
 
 (defalias 'list-buffers 'ibuffer)
 
-(setq grep-command "grep -IHrn -e ")
 (put 'upcase-region 'disabled nil)
+(setq grep-command "grep -IHrn -e \"\\([^[:alnum:]_]\\|^\\)\\([^[:alnum:]_]\\|$\\)\"")
