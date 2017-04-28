@@ -19,7 +19,6 @@
 (require 'init-org)
 (require 'init-git)
 (require 'init-hg-commit-message)
-(require-package 'ox-reveal)
 
 (desktop-save-mode t)
 (require 'server)
