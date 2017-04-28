@@ -42,3 +42,4 @@
 
 (put 'upcase-region 'disabled nil)
 (setq grep-command "grep -IHrn -e \"\\([^[:alnum:]_]\\|^\\)\\([^[:alnum:]_]\\|$\\)\"")
+(add-hook 'grep-mode-hook 'hl-line-mode)
