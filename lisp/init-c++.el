@@ -4,7 +4,7 @@
          (local-file  (file-relative-name
                        temp-file
                        (file-name-directory buffer-file-name))))
-    (list "g++" (list "-pipe" "-std=c++11" "-Wall" "-Wextra" "-Weffc++" "-Wold-style-cast" "-Wsign-promo" "-fsyntax-only" local-file))))
+    (list "g++" (list "-pipe" "-std=c++14" "-Wall" "-Wextra" "-Weffc++" "-Wold-style-cast" "-Wsign-promo" "-fsyntax-only" local-file))))
 (setq flymake-allowed-file-name-masks
       (cons '(".+\\.[ch]\\(pp\\)?"
               flymake-cpp-init
