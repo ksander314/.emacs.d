@@ -48,4 +48,6 @@
 (add-hook 'haskell-mode-hook (lambda () (setq show-trailing-whitespace t)))
 (add-hook 'haskell-mode-hook 'hl-line-mode)
 
+(custom-set-variables '(haskell-tags-on-save t))
+
 (provide 'init-haskell)
