@@ -1,22 +1,5 @@
-(defun flymake-cpp-init ()
-  (let* ((temp-file   (flymake-init-create-temp-buffer-copy
-                       'flymake-create-temp-inplace))
-         (local-file  (file-relative-name
-                       temp-file
-                       (file-name-directory buffer-file-name))))
-    (list "g++" (list "-pipe" "-std=c++14" "-Wall" "-Wextra" "-Weffc++" "-Wold-style-cast" "-Wsign-promo" "-fsyntax-only" local-file))))
-(setq flymake-allowed-file-name-masks
-      (cons '(".+\\.[ch]\\(pp\\)?"
-              flymake-cpp-init
-              flymake-simple-cleanup
-              flymake-get-real-file-name)
-            flymake-allowed-file-name-masks))
-(setq flymake-err-line-patterns
-      (cons '("\\(.*\\) at \\([^ \n]\\) line \\([0-9]+\\)[,.\n]"
-              2 3 nil 1)
-            flymake-err-line-patterns))
-(add-hook 'c++-mode-hook 'flymake-mode)
-(global-set-key (kbd "C-c f") 'flymake-display-err-menu-for-current-line)
+(require-package 'flycheck-irony)
+(add-hook 'c++-mode-hook 'flycheck-mode)
 (global-set-key (kbd "C-c c") 'compile)
 (setq-default indent-tabs-mode nil)
 (setq-default c-basic-offset 4)
