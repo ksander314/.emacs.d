@@ -8,7 +8,6 @@
 (add-to-list 'load-path (expand-file-name "~/.emacs.d/lisp"))
 (require 'init-package)
 (require 'init-utils)
-(require 'init-font)
 (require 'init-flymake)
 (require 'init-c++)
 (require 'init-haskell)
@@ -19,6 +18,7 @@
 (require 'init-org)
 (require 'init-git)
 (require 'init-hg-commit-message)
+(require 'init-rust)
 
 (desktop-save-mode t)
 (require 'server)
@@ -42,3 +42,12 @@
 (put 'upcase-region 'disabled nil)
 (setq grep-command "grep -IHrn -e \"\\([^[:alnum:]_]\\|^\\)\\([^[:alnum:]_]\\|$\\)\"")
 (add-hook 'grep-mode-hook 'hl-line-mode)
+(put 'downcase-region 'disabled nil)
+(custom-set-variables
+ '(flycheck-python-flake8-executable "flake8")
+ '(flycheck-python-pylint-executable "python3")
+ '(flycheck-python-pycompile-executable "python3"))
+(add-hook 'python-mode-hook 'flycheck-mode)
+(setq gud-pdb-command-name "python -m pdb")
+(setq org-clock-persist 'history)
+(org-clock-persistence-insinuate)
