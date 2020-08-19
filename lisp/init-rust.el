@@ -15,16 +15,12 @@
           (lambda () (lsp)))
 (require-package 'cargo)
 (require 'cargo)
-(add-hook 'rust-mode-hook
-          (lambda () (cargo-minor-mode)))
+(add-hook 'rust-mode-hook 'cargo-minor-mode)
 
 (require-package 'flycheck-rust)
 (require 'flycheck-rust)
-(add-hook 'rust-mode-hook
-          (lambda () (flycheck-mode-hook)))
 (require-package 'lsp-ui)
 (require 'lsp-ui)
 (require-package 'lsp-treemacs)
 (require 'lsp-treemacs)
-(add-hook 'rust-mode-hook #'lsp)
 (provide 'init-rust)
