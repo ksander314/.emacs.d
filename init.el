@@ -51,3 +51,4 @@
 (setq gud-pdb-command-name "python -m pdb")
 (setq org-clock-persist 'history)
 (org-clock-persistence-insinuate)
+(add-hook 'go-mode-hook (lambda () (setq tab-width 4)))
