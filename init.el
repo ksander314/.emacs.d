@@ -7,6 +7,7 @@
 
 (add-to-list 'load-path (expand-file-name "~/.emacs.d/lisp"))
 (require 'init-package)
+(require 'init-go)
 (require 'init-utils)
 (require 'init-flymake)
 (require 'init-c++)
@@ -30,13 +31,6 @@
 (setq user-mail-address "olexander314@gmail.com")
 (setq user-login-name "Alexander Stepanenko")
 
-(require-package 'google-translate)
-(require 'google-translate)
-(setq google-translate-default-target-language "ru")
-(setq google-translate-default-source-language "en")
-(global-set-key "\C-ct" 'google-translate-at-point)
-(global-set-key "\C-cT" 'google-translate-query-translate)
-
 (defalias 'list-buffers 'ibuffer)
 
 (put 'upcase-region 'disabled nil)
@@ -52,3 +46,4 @@
 (setq org-clock-persist 'history)
 (org-clock-persistence-insinuate)
 (add-hook 'go-mode-hook (lambda () (setq tab-width 4)))
+;;(require-package 'projectile)
