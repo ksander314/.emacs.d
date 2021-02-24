@@ -4,10 +4,12 @@
 (require-package 'lsp-ui)
 (require-package 'company)
 (require-package 'company-lsp)
+(require-package 'gotest)
 (defun my-go-mode-hook ()
   (add-hook 'dap-stopped-hook
           (lambda (arg) (call-interactively #'dap-hydra)))
   (local-set-key (kbd "C-c c") 'compile)
+  (local-set-key (kbd "C-c C-t") 'go-test-current-test)
   (local-set-key (kbd "C-c C-g") 'godef-jump)
   (local-set-key (kbd "C-c C-d") 'godef-describe)
   (local-set-key (kbd "C-c C-r") 'lsp-find-references)
