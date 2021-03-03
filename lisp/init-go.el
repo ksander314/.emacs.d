@@ -19,6 +19,7 @@
   (local-set-key (kbd "C-c C-s") 'dap-debug)
   (local-set-key (kbd "C-c C-b") 'dap-breakpoint-toggle)
   (local-set-key (kbd "C-c C-p") 'projectile-commander)
+  (local-set-key (kbd "C-c C-c") 'comment-region)
   (if (not (string-match "go" compile-command))
       (set (make-local-variable 'compile-command)
            "go build -v && go test -v && go vet"))
