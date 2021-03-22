@@ -3,7 +3,6 @@
 (require-package 'lsp-mode)
 (require-package 'lsp-ui)
 (require-package 'company)
-(require-package 'company-lsp)
 (require-package 'gotest)
 (require-package 'projectile)
 (defun my-go-mode-hook ()
