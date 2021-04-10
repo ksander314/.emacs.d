@@ -6,6 +6,7 @@
 (autoload 'rust-mode "rust-mode" nil t)
 (defun my-rust-mode-hook ()
   (local-set-key (kbd "C-c C-p") 'projectile-commander)
+  (setq lsp-rust-server 'rust-analyzer)
   )
 (add-hook 'rust-mode-hook 'my-rust-mode-hook)
 (add-hook 'rust-mode-hook
