@@ -10,7 +10,7 @@
           (lambda (arg) (call-interactively #'dap-hydra)))
   (local-set-key (kbd "C-c c") 'compile)
   (local-set-key (kbd "C-c t") 'go-test-current-test)
-  (local-set-key (kbd "C-c C-g") 'godef-jump)
+  (local-set-key (kbd "C-c C-g") 'lsp-find-definition)
   (local-set-key (kbd "C-c C-t") 'lsp-find-type-definition)
   (local-set-key (kbd "C-c C-d") 'godef-describe)
   (local-set-key (kbd "C-c C-r") 'lsp-find-references)
