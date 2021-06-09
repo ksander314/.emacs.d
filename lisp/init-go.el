@@ -29,7 +29,7 @@
 (setq lsp-gopls-staticcheck t)
 (setq lsp-ui-doc-enable nil
       lsp-ui-peek-enable t
-      lsp-ui-sideline-enable t
+      lsp-ui-sideline-enable nil
       lsp-ui-imenu-enable t
       lsp-ui-flycheck-enable t)
 (defun lsp-go-install-save-hooks ()
