@@ -23,15 +23,16 @@
   (if (not (string-match "go" compile-command))
       (set (make-local-variable 'compile-command)
            "go build -v && go test -v && go vet"))
-  )
-(add-hook 'go-mode-hook 'lsp-deferred)
-(setq lsp-file-watch-threshold '10000)
-(setq lsp-gopls-staticcheck t)
-(setq lsp-ui-doc-enable nil
+  (setq lsp-file-watch-threshold '10000)
+  (setq lsp-gopls-staticcheck t)
+  (setq lsp-ui-doc-enable nil
       lsp-ui-peek-enable t
       lsp-ui-sideline-enable nil
       lsp-ui-imenu-enable t
-      lsp-ui-flycheck-enable t)
+      lsp-ui-flycheck-enable t
+      lsp-enable-snippet nil)
+  )
+(add-hook 'go-mode-hook 'lsp-deferred)
 (defun lsp-go-install-save-hooks ()
   (add-hook 'before-save-hook #'lsp-format-buffer t t)
   (add-hook 'before-save-hook #'lsp-organize-imports t t))
