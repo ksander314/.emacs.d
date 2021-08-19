@@ -20,6 +20,7 @@
 (require 'init-git)
 (require 'init-hg-commit-message)
 (require 'init-rust)
+(require 'init-ruby)
 
 (desktop-save-mode t)
 (require 'server)
