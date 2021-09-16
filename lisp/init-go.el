@@ -45,7 +45,7 @@
 (add-hook 'go-mode-hook 'which-function-mode)
 (add-hook 'go-mode-hook 'projectile-mode)
 (require 'whitespace)
-(setq whitespace-line-column 80)
+(setq whitespace-line-column 100)
 (setq whitespace-style '(face lines-tail tabs))
 (add-hook 'go-mode-hook 'whitespace-mode)
 (add-hook 'go-mode-hook 'lsp-deferred)
