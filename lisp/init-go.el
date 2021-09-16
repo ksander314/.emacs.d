@@ -46,6 +46,8 @@
 (add-hook 'go-mode-hook 'projectile-mode)
 (require 'whitespace)
 (setq whitespace-line-column 80)
+(setq whitespace-style '(face lines-tail tabs))
+(add-hook 'go-mode-hook 'whitespace-mode)
 (add-hook 'go-mode-hook 'lsp-deferred)
 (require 'dap-go)
 (add-hook 'go-mode-hook (lambda () (setq show-trailing-whitespace t)))
