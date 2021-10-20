@@ -23,7 +23,6 @@
           (lambda () (setq indent-tabs-mode nil)))
 (add-hook 'rust-mode-hook 'projectile-mode)
 (setq rust-format-on-save t)
-(define-key rust-mode-map (kbd "M-*") 'xref-pop-marker-stack)
 (define-key rust-mode-map (kbd "C-c c") 'rust-run)
 (define-key rust-mode-map (kbd "C-c l") 'rust-run-clippy)
 (define-key rust-mode-map (kbd "C-c C-r") 'lsp-find-references)
@@ -36,6 +35,7 @@
 (require-package 'cargo)
 (require 'cargo)
 (add-hook 'rust-mode-hook 'cargo-minor-mode)
+(add-hook 'rust-mode-hook 'hl-line-mode)
 
 (require-package 'flycheck-rust)
 (require 'flycheck-rust)
