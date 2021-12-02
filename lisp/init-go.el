@@ -5,6 +5,7 @@
 (require-package 'company)
 (require-package 'gotest)
 (require-package 'projectile)
+(require-package 'flycheck-golangci-lint)
 (defun my-go-mode-hook ()
   (add-hook 'dap-stopped-hook
           (lambda (arg) (call-interactively #'dap-hydra)))
@@ -31,6 +32,10 @@
       lsp-ui-imenu-enable t
       lsp-ui-flycheck-enable t
       lsp-enable-snippet nil)
+  (eval-after-load 'flycheck
+    '(add-hook 'flycheck-mode-hook #'flycheck-golangci-lint-setup))
+  (setq flycheck-golangci-lint-config "~/.golangci.yml")
+  (flycheck-add-next-checker 'lsp 'golangci-lint)
   )
 (add-hook 'go-mode-hook 'lsp-deferred)
 (defun lsp-go-install-save-hooks ()
