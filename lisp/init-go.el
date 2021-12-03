@@ -32,10 +32,26 @@
       lsp-ui-imenu-enable t
       lsp-ui-flycheck-enable t
       lsp-enable-snippet nil)
-  (eval-after-load 'flycheck
-    '(add-hook 'flycheck-mode-hook #'flycheck-golangci-lint-setup))
+  (with-eval-after-load 'flycheck
+    (add-hook 'flycheck-mode-hook #'flycheck-golangci-lint-setup)
+
+        ;; Add buffer local Flycheck checkers after LSP for different major modes.
+    (defvar-local my-flycheck-local-cache nil)
+    (defun my-flycheck-local-checker-get (fn checker property)
+      ;; Only check the buffer local cache for the LSP checker, otherwise we get
+      ;; infinite loops.
+      (if (eq checker 'lsp)
+          (or (alist-get property my-flycheck-local-cache)
+              (funcall fn checker property))
+        (funcall fn checker property)))
+    (advice-add 'flycheck-checker-get
+                :around 'my-flycheck-local-checker-get)
+    (add-hook 'lsp-managed-mode-hook
+              (lambda ()
+                (when (derived-mode-p 'go-mode)
+                  (setq my-flycheck-local-cache '((next-checkers . (golangci-lint)))))))
+    )
   (setq flycheck-golangci-lint-config "~/.golangci.yml")
-  (flycheck-add-next-checker 'lsp 'golangci-lint)
   )
 (add-hook 'go-mode-hook 'lsp-deferred)
 (defun lsp-go-install-save-hooks ()
@@ -53,7 +69,6 @@
 (setq whitespace-line-column 100)
 (setq whitespace-style '(face lines-tail tabs))
 (add-hook 'go-mode-hook 'whitespace-mode)
-(add-hook 'go-mode-hook 'lsp-deferred)
 (require 'dap-go)
 (add-hook 'go-mode-hook (lambda () (setq show-trailing-whitespace t)))
 (provide 'init-go)
