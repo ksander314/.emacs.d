@@ -21,6 +21,7 @@
 (require 'init-hg-commit-message)
 (require 'init-rust)
 (require 'init-ruby)
+(require 'init-erl)
 
 (desktop-save-mode t)
 (require 'server)
