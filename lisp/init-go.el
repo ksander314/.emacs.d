@@ -67,6 +67,6 @@
 (setq whitespace-line-column 100)
 (setq whitespace-style '(face lines-tail tabs))
 (add-hook 'go-mode-hook 'whitespace-mode)
-(require 'dap-go)
+(require 'dap-dlv-go)
 (add-hook 'go-mode-hook (lambda () (setq show-trailing-whitespace t)))
 (provide 'init-go)
