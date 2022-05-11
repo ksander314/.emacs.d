@@ -2,7 +2,6 @@
 (require-package 'dap-mode)
 (require-package 'lsp-mode)
 (require-package 'lsp-ui)
-(require-package 'company)
 (require-package 'gotest)
 (require-package 'projectile)
 (require-package 'flycheck-golangci-lint)
@@ -13,7 +12,7 @@
   (local-set-key (kbd "C-c t") 'go-test-current-test)
   (local-set-key (kbd "C-c C-g") 'lsp-find-definition)
   (local-set-key (kbd "C-c C-t") 'lsp-find-type-definition)
-  (local-set-key (kbd "C-c C-d") 'godef-describe)
+  (local-set-key (kbd "C-c C-d") 'lsp-describe-thing-at-point)
   (local-set-key (kbd "C-c C-r") 'lsp-find-references)
   (local-set-key (kbd "C-c C-i") 'lsp-find-implementation)
   (local-set-key (kbd "C-c C-f") 'pop-tag-mark)
@@ -26,7 +25,7 @@
            "go build -v && go test -v && go vet"))
   (setq lsp-file-watch-threshold '10000)
   (setq lsp-gopls-staticcheck t)
-  (setq lsp-ui-doc-enable nil
+  (setq lsp-ui-doc-enable t
       lsp-ui-peek-enable t
       lsp-ui-sideline-enable nil
       lsp-ui-imenu-enable t
@@ -63,7 +62,6 @@
 (add-hook 'go-mode-hook 'hl-line-mode)
 (add-hook 'go-mode-hook 'my-go-mode-hook)
 (add-hook 'go-mode-hook 'subword-mode)
-(add-hook 'go-mode-hook 'which-function-mode)
 (add-hook 'go-mode-hook 'projectile-mode)
 (require 'whitespace)
 (setq whitespace-line-column 100)
