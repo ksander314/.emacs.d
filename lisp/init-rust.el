@@ -23,7 +23,7 @@
           (lambda () (setq indent-tabs-mode nil)))
 (add-hook 'rust-mode-hook 'projectile-mode)
 (setq rust-format-on-save t)
-(define-key rust-mode-map (kbd "C-c c") 'rust-run)
+(define-key rust-mode-map (kbd "C-c c") 'rust-compile)
 (define-key rust-mode-map (kbd "C-c l") 'rust-run-clippy)
 (define-key rust-mode-map (kbd "C-c C-r") 'lsp-find-references)
 (define-key rust-mode-map (kbd "C-c C-i") 'lsp-find-implementation)
