@@ -65,7 +65,7 @@
 (add-hook 'go-mode-hook 'projectile-mode)
 (require 'whitespace)
 (setq whitespace-line-column 100)
-(setq whitespace-style '(face lines-tail tabs))
+(setq whitespace-style '(face lines-tail))
 (add-hook 'go-mode-hook 'whitespace-mode)
 (require 'dap-dlv-go)
 (add-hook 'go-mode-hook (lambda () (setq show-trailing-whitespace t)))
