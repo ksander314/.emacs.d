@@ -21,30 +21,35 @@
 (require 'init-erl)
 
 (desktop-save-mode t)
+
 (require 'server)
 (unless (server-running-p)
   (server-start))
+
 (setq custom-file (expand-file-name "custom.el" user-emacs-directory))
 (when (file-exists-p custom-file)
   (load custom-file))
+
 (setq user-mail-address "olexander314@gmail.com")
 (setq user-login-name "Alexander Stepanenko")
 
 (defalias 'list-buffers 'ibuffer)
 
 (put 'upcase-region 'disabled nil)
+(put 'downcase-region 'disabled nil)
+
 (setq grep-command "grep -IHrn -e \"\\([^[:alnum:]_]\\|^\\)\\([^[:alnum:]_]\\|$\\)\"")
 (add-hook 'grep-mode-hook 'hl-line-mode)
-(put 'downcase-region 'disabled nil)
+
 (custom-set-variables
  '(flycheck-python-flake8-executable "flake8")
  '(flycheck-python-pylint-executable "python3")
  '(flycheck-python-pycompile-executable "python3"))
 (add-hook 'python-mode-hook 'flycheck-mode)
 (setq gud-pdb-command-name "python -m pdb")
+
 (setq org-clock-persist 'history)
 (org-clock-persistence-insinuate)
-(add-hook 'go-mode-hook (lambda () (setq tab-width 4)))
 
 (require-package 'exec-path-from-shell)
 (when (memq window-system '(mac ns x))
