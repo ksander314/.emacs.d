@@ -28,7 +28,7 @@
 
 (require 'whitespace)
 (setq whitespace-line-column 80)
-(setq whitespace-style '(face lines-tail tabs))
+(setq whitespace-style '(face lines-tail))
 (add-hook 'haskell-mode-hook 'whitespace-mode)
 
 (eval-after-load "haskell-mode"

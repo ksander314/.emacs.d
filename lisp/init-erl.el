@@ -5,7 +5,7 @@
   )
 (require 'whitespace)
 (setq whitespace-line-column 100)
-(setq whitespace-style '(face lines-tail tabs))
+(setq whitespace-style '(face lines-tail))
 (add-hook 'erlang-mode-hook 'whitespace-mode)
 (add-hook 'erlang-mode-hook 'hl-line-mode)
 (add-hook 'erlang-mode-hook 'subword-mode)

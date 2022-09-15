@@ -22,7 +22,7 @@
 (add-hook 'c++-mode-hook 'hl-line-mode)
 (require 'whitespace)
 (setq whitespace-line-column 80)
-(setq whitespace-style '(face lines-tail tabs))
+(setq whitespace-style '(face lines-tail))
 (add-hook 'c++-mode-hook 'whitespace-mode)
 (require-package 'helm-gtags)
 (add-hook 'c-mode-hook 'helm-gtags-mode)
