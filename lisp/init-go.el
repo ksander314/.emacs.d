@@ -58,7 +58,7 @@
   (add-hook 'before-save-hook #'lsp-organize-imports t t))
 (add-hook 'go-mode-hook #'lsp-go-install-save-hooks)
 (add-hook 'go-mode-hook 'lsp-ui-mode)
-(add-hook 'go-mode-hook (lambda () (auto-complete-mode -1)))
+;;(add-hook 'go-mode-hook (lambda () (auto-complete-mode -1)))
 (add-hook 'go-mode-hook 'hl-line-mode)
 (add-hook 'go-mode-hook 'my-go-mode-hook)
 (add-hook 'go-mode-hook 'subword-mode)
