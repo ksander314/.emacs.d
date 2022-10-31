@@ -56,3 +56,5 @@
   (exec-path-from-shell-initialize))
 
 (windmove-default-keybindings 'meta)
+
+(require-package 'yaml-mode)
