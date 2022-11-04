@@ -58,3 +58,4 @@
 (windmove-default-keybindings 'meta)
 
 (require-package 'yaml-mode)
+(require-package 'json-mode)
