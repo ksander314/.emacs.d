@@ -19,6 +19,7 @@
 (require 'init-rust)
 (require 'init-ruby)
 (require 'init-erl)
+(require 'init-elisp)
 
 (desktop-save-mode t)
 
