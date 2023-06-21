@@ -60,3 +60,4 @@
 
 (require-package 'yaml-mode)
 (require-package 'json-mode)
+(add-to-list 'image-types 'svg)
