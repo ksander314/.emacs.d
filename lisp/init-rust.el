@@ -24,6 +24,7 @@
 (add-hook 'rust-mode-hook 'projectile-mode)
 (setq rust-format-on-save t)
 (define-key rust-mode-map (kbd "C-c c") 'rust-compile)
+(define-key rust-mode-map (kbd "C-c r") 'rust-run)
 (define-key rust-mode-map (kbd "C-c l") 'rust-run-clippy)
 (define-key rust-mode-map (kbd "C-c C-r") 'lsp-find-references)
 (define-key rust-mode-map (kbd "C-c C-i") 'lsp-find-implementation)
@@ -39,7 +40,4 @@
 
 (require-package 'flycheck-rust)
 (require 'flycheck-rust)
-(require-package 'lsp-ui)
-(require-package 'lsp-treemacs)
-(require 'lsp-treemacs)
 (provide 'init-rust)
