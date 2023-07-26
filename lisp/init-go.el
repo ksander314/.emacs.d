@@ -1,5 +1,5 @@
 (require-package 'go-mode)
-(require-package 'dap-mode)
+;;(require-package 'dap-mode)
 (require-package 'lsp-mode)
 (require-package 'lsp-ui)
 (require-package 'gotest)
