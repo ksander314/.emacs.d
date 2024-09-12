@@ -1,5 +1,5 @@
 (require-package 'go-mode)
-;;(require-package 'dap-mode)
+(require-package 'dap-mode)
 (require-package 'lsp-mode)
 (require-package 'lsp-ui)
 (require-package 'gotest)
@@ -8,7 +8,7 @@
 (defun my-go-mode-hook ()
   (add-hook 'dap-stopped-hook
           (lambda (arg) (call-interactively #'dap-hydra)))
-  (local-set-key (kbd "C-c c") 'compile)
+  (local-set-key (kbd "C-c c") 'projectile-compile-project)
   (local-set-key (kbd "C-c t") 'go-test-current-test)
   (local-set-key (kbd "C-c C-g") 'lsp-find-definition)
   (local-set-key (kbd "C-c C-t") 'lsp-find-type-definition)
