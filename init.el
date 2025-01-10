@@ -60,3 +60,33 @@
 (require-package 'yaml-mode)
 (require-package 'json-mode)
 (add-to-list 'image-types 'svg)
+
+(defun org-calculate-totals-for-day ()
+  "Calculate total effort and clocked time for the current Org heading."
+  (interactive)
+  (save-excursion
+    (let ((total-effort 0)
+          (total-clocked (org-clock-sum-current-item)))
+      (org-map-entries
+       (lambda ()
+         (let ((effort (org-entry-get (point) "Effort")))
+           (message "DEBUG: Effort=%s, Clocked=%s" effort total-clocked)
+           (message "DEBUG: Total-Effort=%s, Total-Clocked=%s" total-effort total-clocked)
+           ;; Add Effort if exists
+           (when effort
+             (let ((effort-minutes (org-duration-to-minutes effort)))
+               (setq total-effort (+ total-effort (truncate effort-minutes)))))
+           ;; Add Clocked time if exists
+           ))
+       nil 'tree)
+      ;; Update totals in the main heading
+      (org-back-to-heading t)
+      (org-set-property "TotalEffort" (org-minutes-to-hh:mm (truncate total-effort)))
+      (org-set-property "TotalClocked" (org-minutes-to-hh:mm (truncate total-clocked)))
+      (message "Totals updated: Effort=%s, Clocked=%s"
+               (org-minutes-to-hh:mm (truncate total-effort))
+               (org-minutes-to-hh:mm (truncate total-clocked))))))
+
+(defun org-minutes-to-hh:mm (minutes)
+  "Convert minutes to HH:MM format."
+  (format "%d:%02d" (/ minutes 60) (% minutes 60)))
