@@ -90,3 +90,9 @@
 (defun org-minutes-to-hh:mm (minutes)
   "Convert minutes to HH:MM format."
   (format "%d:%02d" (/ minutes 60) (% minutes 60)))
+
+(use-package exec-path-from-shell
+  :ensure t
+  :config
+  ;; This will pull the PATH (and other variables, if needed) from your shell.
+  (exec-path-from-shell-initialize))
