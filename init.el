@@ -88,3 +88,15 @@
   :bind (:map copilot-mode-map
               ("C-c a" . copilot-accept-completion))
   :ensure t)
+
+(use-package org-alert
+  :ensure t
+  :config
+  ;; Set how often (in seconds) to check for upcoming deadlines
+  (setq org-alert-interval 60)
+  (setq org-alert-notify-cutoff 5)
+  (setq org-alert-notify-event-cutoff 5)
+  ;; Optionally, set the notification command (Linux example)
+  (setq org-alert-notification-command "notify-send")
+  (setq alert-default-style 'libnotify)
+  (org-alert-enable))

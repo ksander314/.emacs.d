@@ -9,7 +9,7 @@
 (add-hook 'org-mode-hook (lambda () (setq org-enforce-todo-dependencies t)))
 
 (setq org-todo-keywords
-      '((sequence "TODO" "INPROCESS" "|" "CANCELED" "DELEGATED" "DONE")))
+      '((sequence "TODO" "INPROCESS" "|" "DONE" "CANCELED" "DELEGATED")))
 
 (setq org-todo-keyword-faces
       '(("TODO" . org-warning) ("INPROCESS" . "orange")
