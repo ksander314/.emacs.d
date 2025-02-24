@@ -48,9 +48,6 @@
 (add-hook 'python-mode-hook 'flycheck-mode)
 (setq gud-pdb-command-name "python -m pdb")
 
-(setq org-clock-persist 'history)
-(org-clock-persistence-insinuate)
-
 (require-package 'exec-path-from-shell)
 (when (memq window-system '(mac ns x))
   (exec-path-from-shell-initialize))
@@ -61,38 +58,33 @@
 (require-package 'json-mode)
 (add-to-list 'image-types 'svg)
 
-(defun org-calculate-totals-for-day ()
-  "Calculate total effort and clocked time for the current Org heading."
-  (interactive)
-  (save-excursion
-    (let ((total-effort 0)
-          (total-clocked (org-clock-sum-current-item)))
-      (org-map-entries
-       (lambda ()
-         (let ((effort (org-entry-get (point) "Effort")))
-           (message "DEBUG: Effort=%s, Clocked=%s" effort total-clocked)
-           (message "DEBUG: Total-Effort=%s, Total-Clocked=%s" total-effort total-clocked)
-           ;; Add Effort if exists
-           (when effort
-             (let ((effort-minutes (org-duration-to-minutes effort)))
-               (setq total-effort (+ total-effort (truncate effort-minutes)))))
-           ;; Add Clocked time if exists
-           ))
-       nil 'tree)
-      ;; Update totals in the main heading
-      (org-back-to-heading t)
-      (org-set-property "TotalEffort" (org-minutes-to-hh:mm (truncate total-effort)))
-      (org-set-property "TotalClocked" (org-minutes-to-hh:mm (truncate total-clocked)))
-      (message "Totals updated: Effort=%s, Clocked=%s"
-               (org-minutes-to-hh:mm (truncate total-effort))
-               (org-minutes-to-hh:mm (truncate total-clocked))))))
-
-(defun org-minutes-to-hh:mm (minutes)
-  "Convert minutes to HH:MM format."
-  (format "%d:%02d" (/ minutes 60) (% minutes 60)))
-
 (use-package exec-path-from-shell
   :ensure t
   :config
   ;; This will pull the PATH (and other variables, if needed) from your shell.
   (exec-path-from-shell-initialize))
+
+(defvar bootstrap-version)
+(let ((bootstrap-file
+       (expand-file-name
+        "straight/repos/straight.el/bootstrap.el"
+        (or (bound-and-true-p straight-base-dir)
+            user-emacs-directory)))
+      (bootstrap-version 7))
+  (unless (file-exists-p bootstrap-file)
+    (with-current-buffer
+        (url-retrieve-synchronously
+         "https://raw.githubusercontent.com/radian-software/straight.el/develop/install.el"
+         'silent 'inhibit-cookies)
+      (goto-char (point-max))
+      (eval-print-last-sexp)))
+  (load bootstrap-file nil 'nomessage))
+
+(setq straight-use-package-by-default t)
+
+(use-package copilot
+  :straight (:host github :repo "copilot-emacs/copilot.el" :files ("*.el"))
+  :hook (prog-mode . copilot-mode)
+  :bind (:map copilot-mode-map
+              ("C-c a" . copilot-accept-completion))
+  :ensure t)
