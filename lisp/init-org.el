@@ -81,10 +81,26 @@
   (defconst jiralib-token jiralib-token)
   (setq org-jira-custom-jqls
   '(
-    (:jql " project IN (WTSN) and Sprint = 2804 order by created DESC "
+    (:jql " project IN (WTSN) and Sprint in openSprints() order by created DESC "
           :limit 100
           :filename "current-sprint")
+    (:jql " project IN (WTSN) and Sprint in openSprints() and assignee = currentUser() order by created DESC "
+          :limit 100
+          :filename "my-current-tasks")
     ))
   )
+
+(use-package org-alert
+  :ensure t
+  :after org
+  :config
+  ;; Set how often (in seconds) to check for upcoming deadlines
+  (setq org-alert-interval 60)
+  (setq org-alert-notify-cutoff 5)
+  (setq org-alert-notify-event-cutoff 5)
+  ;; Optionally, set the notification command (Linux example)
+  (setq org-alert-notification-command "notify-send")
+  (setq alert-default-style 'libnotify)
+  (org-alert-enable))
 
 (provide 'init-org)
