@@ -49,7 +49,7 @@
 (setq org-capture-templates
       '(("d" "Daily Work Log"
          entry (file (lambda () (format "~/org/%d.org" (string-to-number (format-time-string "%V")))))
-         "* %(format-time-string \"%Y-%m-%d\")\n** [/]\n*** TODO Slack Later :CALL:\n:PROPERTIES:\n:Effort:   0.5h\n:END:\n*** TODO Daily Call :CALL:\nSCHEDULED: %(format-time-string \"<%Y-%m-%d %H:%M>\" (encode-time 0 30 12 (string-to-number (format-time-string \"%d\")) (string-to-number (format-time-string \"%m\")) (string-to-number (format-time-string \"%Y\"))))\n:PROPERTIES:\n:Effort:   0.5h\n:END:\n"
+         "\n* %(format-time-string \"%Y-%m-%d\") [/]\n** TODO Slack Later :CALL:\n:PROPERTIES:\n:Effort:   0.5h\n:END:\n** TODO Daily Call :CALL:\nSCHEDULED: %(format-time-string \"<%Y-%m-%d %H:%M>\" (encode-time 0 30 12 (string-to-number (format-time-string \"%d\")) (string-to-number (format-time-string \"%m\")) (string-to-number (format-time-string \"%Y\"))))\n:PROPERTIES:\n:Effort:   0.5h\n:END:\n"
 )))
 
 (provide 'init-org)
