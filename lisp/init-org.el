@@ -9,11 +9,28 @@
 (add-hook 'org-mode-hook (lambda () (setq org-enforce-todo-dependencies t)))
 
 (setq org-todo-keywords
-      '((sequence "TODO" "INPROCESS" "|" "DONE" "CANCELED" "DELEGATED")))
+      '((sequence "TODO(t)" "PAUSE(p)" "INPROCESS(s)" "|" "DONE(d)" "CANCELED(c)")))
 
 (setq org-todo-keyword-faces
       '(("TODO" . org-warning) ("INPROCESS" . "orange")
-        ("DELEGATED" . "green")))
+        ("CANCELED" . "green")))
+
+(setq org-log-done 'time)
+(setq org-log-into-drawer t)
+
+(defun my-org-auto-clock-on-state-change ()
+  "Auto-start clock when state changes to INPROCESS and auto-stop when state changes to PAUSE."
+  (cond
+   ((string= org-state "INPROCESS")
+    ;; Only clock in if no clock is already running.
+    (unless org-clock-current-task
+      (org-clock-in)))
+   ((string= org-state "PAUSE")
+    ;; Only clock out if a clock is running.
+    (when org-clock-current-task
+      (org-clock-out)))))
+
+(add-hook 'org-after-todo-state-change-hook #'my-org-auto-clock-on-state-change)
 
 (setq org-clock-persist 'history)
 (org-clock-persistence-insinuate)
