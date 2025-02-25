@@ -69,4 +69,22 @@
          "\n* %(format-time-string \"%Y-%m-%d\") [/]\n** TODO Slack Later :CALL:\n:PROPERTIES:\n:Effort:   0.5h\n:END:\n** TODO Daily Call :CALL:\nSCHEDULED: %(format-time-string \"<%Y-%m-%d %H:%M>\" (encode-time 0 30 12 (string-to-number (format-time-string \"%d\")) (string-to-number (format-time-string \"%m\")) (string-to-number (format-time-string \"%Y\"))))\n:PROPERTIES:\n:Effort:   0.5h\n:END:\n"
 )))
 
+(load "../jira-secrets.el")
+
+(use-package org-jira
+  :ensure t
+  :config
+  (setq org-jira-file "~/org/jira.org")
+  (setq jiralib-url jiralib-url)
+  (setq jiralib-username jiralib-username)
+  (setq jiralib-password jiralib-password)
+  (defconst jiralib-token jiralib-token)
+  (setq org-jira-custom-jqls
+  '(
+    (:jql " project IN (WTSN) and Sprint = 2804 order by created DESC "
+          :limit 100
+          :filename "current-sprint")
+    ))
+  )
+
 (provide 'init-org)
