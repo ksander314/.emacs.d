@@ -65,8 +65,25 @@
 
 (setq org-capture-templates
       '(("d" "Daily Work Log"
-         entry (file (lambda () (format "~/org/%d.org" (string-to-number (format-time-string "%V")))))
-         "\n* %(format-time-string \"%Y-%m-%d\") [/]\n** TODO Slack Later :INVISIBLE:\n:PROPERTIES:\n:Effort:   0.5h\n:END:\n** TODO Daily Call :CALL:\nSCHEDULED: %(format-time-string \"<%Y-%m-%d %H:%M>\" (encode-time 0 30 12 (string-to-number (format-time-string \"%d\")) (string-to-number (format-time-string \"%m\")) (string-to-number (format-time-string \"%Y\"))))\n:PROPERTIES:\n:Effort:   0.5h\n:END:\n"
+         entry (file (lambda ()
+                       (format "~/org/%d.org"
+                               (string-to-number (format-time-string "%V")))))
+         "\n* %(format-time-string \"%Y-%m-%d\") [/]
+:PROPERTIES:
+:StartWorkingAt: %(format-time-string \"<%Y-%m-%d %H:%M>\" (current-time))
+:FinishWorkingAt: %(format-time-string \"<%Y-%m-%d %H:%M>\" (time-add (current-time) (seconds-to-time (* 8 3600))))
+:END:
+
+** TODO Slack Later :INVISIBLE:
+:PROPERTIES:
+:Effort:   0.5h
+:END:
+
+** TODO Daily Call :CALL:
+SCHEDULED: %(format-time-string \"<%Y-%m-%d %H:%M>\" (encode-time 0 30 12 (string-to-number (format-time-string \"%d\")) (string-to-number (format-time-string \"%m\")) (string-to-number (format-time-string \"%Y\"))))
+:PROPERTIES:
+:Effort:   0.5h
+:END:\n"
 )))
 
 (load "../jira-secrets.el")
