@@ -83,7 +83,13 @@
 SCHEDULED: %(format-time-string \"<%Y-%m-%d %H:%M>\" (encode-time 0 30 12 (string-to-number (format-time-string \"%d\")) (string-to-number (format-time-string \"%m\")) (string-to-number (format-time-string \"%Y\"))))
 :PROPERTIES:
 :Effort:   0.5h
-:END:\n"
+:END:
+
+** TODO Dinner :INVISIBLE:
+:PROPERTIES:
+:Effort: 1h
+:END:
+"
 )))
 
 (load "../jira-secrets.el")
