@@ -71,7 +71,7 @@
          "\n* %(format-time-string \"%Y-%m-%d\") [/]
 :PROPERTIES:
 :StartWorkingAt: %(format-time-string \"<%Y-%m-%d %H:%M>\" (current-time))
-:FinishWorkingAt: %(format-time-string \"<%Y-%m-%d %H:%M>\" (time-add (current-time) (seconds-to-time (* 8 3600))))
+:FinishWorkingAt: %(format-time-string \"<%Y-%m-%d %H:%M>\" (time-add (current-time) (seconds-to-time (* 8.5 3600))))
 :END:
 
 ** TODO Slack Later :INVISIBLE:
@@ -98,18 +98,14 @@ SCHEDULED: %(format-time-string \"<%Y-%m-%d %H:%M>\" (encode-time 0 30 12 (strin
   :ensure t
   :config
   (setq org-jira-file "~/org/jira.org")
-  (setq jiralib-url jiralib-url)
-  (setq jiralib-username jiralib-username)
-  (setq jiralib-password jiralib-password)
-  (defconst jiralib-token jiralib-token)
+  (setq jiralib-url my-jiralib-url)
+  (setq jiralib-token my-jiralib-token)
+  (setq jiralib-user my-jiralib-username)
   (setq org-jira-custom-jqls
   '(
     (:jql " project IN (WTSN) and Sprint in openSprints() order by created DESC "
           :limit 100
           :filename "current-sprint")
-    (:jql " project IN (WTSN) and Sprint in openSprints() and assignee = currentUser() order by created DESC "
-          :limit 100
-          :filename "my-current-tasks")
     ))
   )
 
