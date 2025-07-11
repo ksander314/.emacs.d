@@ -88,3 +88,6 @@
   :bind (:map copilot-mode-map
               ("C-c a" . copilot-accept-completion))
   :ensure t)
+
+(require 'auth-source)
+(setq auth-sources '((:type entry :file "~/.authinfo.gpg" :secret t))

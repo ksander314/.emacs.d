@@ -122,4 +122,47 @@ SCHEDULED: %(format-time-string \"<%Y-%m-%d %H:%M>\" (encode-time 0 30 12 (strin
   (setq alert-default-style 'libnotify)
   (org-alert-enable))
 
+(defun my/org-read-duration-property (prop)
+  "Read a duration property PROP from the current headline and convert it to minutes."
+  (let ((val (org-entry-get nil prop)))
+    (when val
+      (org-duration-to-minutes val))))
+
+(defun my/org-calc-workday-stats ()
+  "Calculate workday statistics from the current Org buffer.
+Expected properties:
+- TotalEffort (in format like '8:30')
+- TotalClocked (in format like '3:55')
+And clocked times in LOGBOOK entries for tasks tagged with \"INVISIBLE\" or \"CALL\"."
+  (interactive)
+  (save-excursion
+    (goto-char (point-min))
+    (let ((total-effort 0)
+          (total-clocked 0)
+          (invisible-clocked 0)
+          (call-clocked 0))
+      ;; Read top-level properties from the first headline (assumed to be the workday header)
+      (when (re-search-forward ":TotalEffort:[ \t]*\\([^:\n]+\\)" nil t)
+        (setq total-effort (org-duration-to-minutes (match-string 1))))
+      (when (re-search-forward ":TotalClocked:[ \t]*\\([^:\n]+\\)" nil t)
+        (setq total-clocked (org-duration-to-minutes (match-string 1))))
+      ;; Iterate over all headlines in the file
+      (org-map-entries
+       (lambda ()
+         (let* ((tags (org-get-tags))
+                ;; Sum clocked time in the current subtree using org-clock-sum.
+                (clocked (org-clock-sum nil 'value)))
+           (when (member "INVISIBLE" tags)
+             (setq invisible-clocked (+ invisible-clocked clocked)))
+           (when (member "CALL" tags)
+             (setq call-clocked (+ call-clocked clocked)))))
+       nil 'file)
+      ;; Calculate unclocked time as difference between total effort and total clocked
+      (let ((unclocked (max 0 (- total-effort total-clocked))))
+        (message "TasksClocked: %s, InvisibleClocked: %s, CallClocked: %s, UnclockedBetweenStartAndFinish: %s"
+                 (org-minutes-to-duration total-clocked)
+                 (org-minutes-to-duration invisible-clocked)
+                 (org-minutes-to-duration call-clocked)
+                 (org-minutes-to-duration unclocked))))))
+
 (provide 'init-org)
