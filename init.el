@@ -90,4 +90,4 @@
   :ensure t)
 
 (require 'auth-source)
-(setq auth-sources '((:type entry :file "~/.authinfo.gpg" :secret t))
+(setq auth-sources '((:type entry :file "~/.authinfo.gpg" :secret t)))
