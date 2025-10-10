@@ -19,6 +19,7 @@
 (require 'init-rust)
 (require 'init-erl)
 (require 'init-elisp)
+(require 'init-gptel)
 
 (desktop-save-mode t)
 
@@ -88,6 +89,3 @@
   :bind (:map copilot-mode-map
               ("C-c a" . copilot-accept-completion))
   :ensure t)
-
-(require 'auth-source)
-(setq auth-sources '((:type entry :file "~/.authinfo.gpg" :secret t)))
