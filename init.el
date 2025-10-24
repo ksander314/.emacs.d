@@ -65,3 +65,8 @@
   :config
   ;; This will pull the PATH (and other variables, if needed) from your shell.
   (exec-path-from-shell-initialize))
+
+;; https://github.com/copilot-emacs/copilot.el
+(add-to-list 'load-path "~/src/copilot.el")
+(require 'copilot)
+(define-key copilot-completion-map (kbd "C-c a") 'copilot-accept-completion)
