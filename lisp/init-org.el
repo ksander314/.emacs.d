@@ -92,36 +92,6 @@ SCHEDULED: %(format-time-string \"<%Y-%m-%d %H:%M>\" (encode-time 0 30 12 (strin
 "
 )))
 
-(load "../jira-secrets.el")
-
-(use-package org-jira
-  :ensure t
-  :config
-  (setq org-jira-file "~/org/jira.org")
-  (setq jiralib-url my-jiralib-url)
-  (setq jiralib-token my-jiralib-token)
-  (setq jiralib-user my-jiralib-username)
-  (setq org-jira-custom-jqls
-  '(
-    (:jql " project IN (WTSN) and Sprint in openSprints() order by created DESC "
-          :limit 100
-          :filename "current-sprint")
-    ))
-  )
-
-(use-package org-alert
-  :ensure t
-  :after org
-  :config
-  ;; Set how often (in seconds) to check for upcoming deadlines
-  (setq org-alert-interval 60)
-  (setq org-alert-notify-cutoff 5)
-  (setq org-alert-notify-after-event-cutoff 5)
-  ;; Optionally, set the notification command (Linux example)
-  (setq org-alert-notification-command "notify-send")
-  (setq alert-default-style 'libnotify)
-  (org-alert-enable))
-
 (defun my/org-read-duration-property (prop)
   "Read a duration property PROP from the current headline and convert it to minutes."
   (let ((val (org-entry-get nil prop)))
