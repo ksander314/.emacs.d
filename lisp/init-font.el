@@ -1,3 +1,2 @@
-(set-default-font "Inconsolata")
-(set-face-attribute 'default nil :height 115)
+(set-face-attribute 'default nil :font "Inconsolata" :height 180)
 (provide 'init-font)

@@ -20,6 +20,7 @@
 (require 'init-erl)
 (require 'init-elisp)
 (require 'init-gptel)
+(require 'init-font)
 
 (desktop-save-mode t)
 
