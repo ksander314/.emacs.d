@@ -28,6 +28,11 @@
 (define-key rust-mode-map (kbd "C-c l") 'rust-run-clippy)
 (define-key rust-mode-map (kbd "C-c C-r") 'lsp-find-references)
 (define-key rust-mode-map (kbd "C-c C-i") 'lsp-find-implementation)
+(define-key rust-mode-map (kbd "C-c C-g") 'lsp-find-definition)
+(define-key rust-mode-map (kbd "C-c C-f") 'pop-tag-mark)
+(define-key rust-mode-map (kbd "C-c C-t") 'lsp-find-type-definition)
+(define-key rust-mode-map (kbd "C-c C-d") 'lsp-describe-thing-at-point)
+(define-key rust-mode-map (kbd "C-c t") 'rust-test)
 
 (require-package 'toml-mode)
 (require 'toml-mode)
