@@ -69,4 +69,9 @@
 ;; https://github.com/copilot-emacs/copilot.el
 (add-to-list 'load-path "~/src/copilot.el")
 (require 'copilot)
-(define-key copilot-completion-map (kbd "C-c a") 'copilot-accept-completion)
+(defun my-copilot-setup ()
+  (setq copilot-idle-delay nil)
+  (local-set-key (kbd "C-c a") 'copilot-accept-completion)
+  (local-set-key (kbd "C-c C-e") 'copilot-complete)
+  )
+(add-hook 'copilot-mode-hook 'my-copilot-setup)
