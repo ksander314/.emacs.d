@@ -9,7 +9,6 @@
   (local-set-key (kbd "C-c C-p") 'projectile-commander)
   (setq lsp-rust-server 'rust-analyzer)
   (setq lsp-rust-analyzer-cargo-watch-command "clippy")
-  (setq lsp-eldoc-render-all t)
   (setq lsp-idle-delay 0.7)
   (setq lsp-rust-analyzer-server-display-inlay-hints t)
   
