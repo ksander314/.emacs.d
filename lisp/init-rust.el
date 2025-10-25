@@ -13,8 +13,6 @@
   (setq lsp-idle-delay 0.7)
   (setq lsp-rust-analyzer-server-display-inlay-hints t)
   
-  (setq lsp-ui-peek-always-show t)
-  (setq lsp-ui-sideline-show-hover t)
   (setq lsp-ui-doc-enable nil)
   (add-hook 'rust-mode-hook 'lsp-ui-mode)
   )
@@ -32,7 +30,7 @@
 (define-key rust-mode-map (kbd "C-c C-f") 'pop-tag-mark)
 (define-key rust-mode-map (kbd "C-c C-t") 'lsp-find-type-definition)
 (define-key rust-mode-map (kbd "C-c C-d") 'lsp-describe-thing-at-point)
-(define-key rust-mode-map (kbd "C-c t") 'rust-test)
+(define-key rust-mode-map (kbd "C-c t") 'cargo-process-current-test)
 
 (require-package 'toml-mode)
 (require 'toml-mode)
