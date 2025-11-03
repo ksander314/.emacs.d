@@ -75,3 +75,26 @@
   (local-set-key (kbd "C-c C-e") 'copilot-complete)
   )
 (add-hook 'copilot-mode-hook 'my-copilot-setup)
+
+(setq user-full-name
+      (string-trim (shell-command-to-string "git config --global user.name")))
+
+(setq user-mail-address
+      (string-trim (shell-command-to-string "git config --global user.email")))
+
+(setq gnus-select-method
+      '(nnimap "gmail"
+               (nnimap-address "imap.gmail.com")
+               (nnimap-server-port 993)
+               (nnimap-stream ssl)))
+
+(setq smtpmail-smtp-server "smtp.gmail.com"
+      smtpmail-smtp-service 587
+      smtpmail-stream-type 'starttls)
+
+(require-package 'jira)
+(use-package jira
+  :config
+  (setq jira-base-url "https://tradingview-air.atlassian.net")
+  (setq jira-token-is-personal-access-token nil)
+  (setq jira-api-version 3))
