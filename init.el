@@ -92,9 +92,22 @@
       smtpmail-smtp-service 587
       smtpmail-stream-type 'starttls)
 
-(require-package 'jira)
-(use-package jira
-  :config
-  (setq jira-base-url "https://tradingview-air.atlassian.net")
-  (setq jira-token-is-personal-access-token nil)
-  (setq jira-api-version 3))
+(setq gnus-use-cache t)
+(setq gnus-fetch-old-headers 'some)
+(run-at-time "0 min" 300 'gnus-group-get-new-news)
+
+(when (string= user-mail-address "astepanenko@tradingview.com")
+  (add-to-list 'load-path "~/src/jira.el")
+  (require 'jira)
+  (use-package jira
+    :config
+    (setq jira-base-url "https://tradingview-air.atlassian.net")
+    (setq jira-token-is-personal-access-token nil)
+    (setq jira-api-version 3))
+
+  (add-hook 'jira-issues-mode-hook 'hl-line-mode)
+
+  (setq jira-issues-table-fields '(:key :issue-type-name :status-name :assignee-name :summary)))
+
+(require-package 'multiple-cursors)
+(global-set-key (kbd "C-c C-*") 'mc/mark-all-in-region-regexp)
