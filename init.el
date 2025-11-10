@@ -117,3 +117,16 @@
 
 (setq-default show-trailing-whitespace t)
 (column-number-mode t)
+
+(defun disable-line-numbers ()
+  "Disable line numbers in the current buffer."
+  (display-line-numbers-mode -1))
+
+(defun disable-trailing-whitespace ()
+  "Disable trailing whitespace highlighting in the current buffer."
+  (setq show-trailing-whitespace nil))
+
+(add-hook 'term-mode-hook 'disable-line-numbers)
+(add-hook 'gptel-mode-hook 'disable-line-numbers)
+(add-hook 'term-mode-hook 'disable-trailing-whitespace)
+(add-hook 'gptel-mode-hook 'disable-trailing-whitespace)
