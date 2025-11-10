@@ -111,3 +111,9 @@
 
 (require-package 'multiple-cursors)
 (global-set-key (kbd "C-c C-*") 'mc/mark-all-in-region-regexp)
+
+(setq display-line-numbers-type 'relative)
+(global-display-line-numbers-mode 1)
+
+(setq-default show-trailing-whitespace t)
+(column-number-mode t)
