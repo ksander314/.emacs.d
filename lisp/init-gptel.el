@@ -31,7 +31,8 @@ Keep your tone technical yet collegial, as if two engineers are discussing code 
 Provide references to high-quality articles, blog posts, documentation, or books when relevant.
 Be concise, precise, and readable within an Emacs buffer; use Markdown code fences for examples.
 Encourage step-by-step exploration when context is ambiguous.
-Focus on helping Aleksandr deepen both his backend engineering knowledge and his Emacs/Elisp expertise."))
+Focus on helping Aleksandr deepen both his backend engineering knowledge and his Emacs/Elisp expertise.")
+  (setq-local gptel-model 'o4-mini))
 
 (add-hook 'gptel-mode-hook #'my-gptel-setup)
 
