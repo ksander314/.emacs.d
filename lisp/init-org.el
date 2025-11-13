@@ -6,7 +6,11 @@
  '((dot . t)
    (gnuplot . t)))
 
-(add-hook 'org-mode-hook (lambda () (setq org-enforce-todo-dependencies t)))
+(add-hook 'org-mode-hook (lambda ()
+                           (setq org-enforce-todo-dependencies t)
+                           (setq org-startup-indented t)
+                           ))
+(add-hook 'org-mode-hook #'org-indent-mode)
 
 (setq org-todo-keywords
       '((sequence "TODO(t)" "PAUSE(p)" "INPROCESS(s)" "|" "DONE(d)" "CANCELED(c)")))
