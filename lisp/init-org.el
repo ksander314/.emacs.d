@@ -9,6 +9,7 @@
 (add-hook 'org-mode-hook (lambda ()
                            (setq org-enforce-todo-dependencies t)
                            (setq org-startup-indented t)
+                           (setq org-ellipsis " ⤵")
                            ))
 (add-hook 'org-mode-hook #'org-indent-mode)
 
