@@ -131,3 +131,30 @@
 (add-hook 'term-mode-hook 'disable-trailing-whitespace)
 (add-hook 'gptel-mode-hook 'disable-trailing-whitespace)
 (add-hook 'eshell-mode-hook 'disable-trailing-whitespace)
+
+(require-package 'eshell-syntax-highlighting)
+
+(add-hook 'eshell-mode-hook 'eshell-syntax-highlighting-global-mode)
+
+(defface my/eshell-prompt-dir-face
+  '((t :foreground "#0a64f5" :weight bold));;0a8248
+  "Face for directory in eshell prompt.")
+
+(defface my/eshell-prompt-tail-face
+  '((t :foreground "#ad071a" :weight bold));;0a64f5
+  "Face for tail of eshell prompt.")
+
+(defun my/eshell-current-dir-name ()
+  "Return the basename of `eshell/pwd` (handles ~ and / correctly)."
+  (let ((p (abbreviate-file-name (eshell/pwd))))
+    (file-name-nondirectory (directory-file-name p))))
+
+(defun my/eshell-prompt ()
+  "Prompt: [basename] $ "
+  (let* ((dir (propertize (my/eshell-current-dir-name) 'face 'my/eshell-prompt-dir-face))
+         (tail (propertize "➜" 'face 'my/eshell-prompt-tail-face)))
+    (concat "[" dir "] " tail " ")))
+
+(setq eshell-prompt-function #'my/eshell-prompt)
+(setq eshell-prompt-regexp "^\\[.*\\] ➜ ")  ;; must match the prompt
+(setq eshell-highlight-prompt nil)            ;; optional: enables face handling
