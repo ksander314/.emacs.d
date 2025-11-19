@@ -130,3 +130,4 @@
 (add-hook 'gptel-mode-hook 'disable-line-numbers)
 (add-hook 'term-mode-hook 'disable-trailing-whitespace)
 (add-hook 'gptel-mode-hook 'disable-trailing-whitespace)
+(add-hook 'eshell-mode-hook 'disable-trailing-whitespace)
