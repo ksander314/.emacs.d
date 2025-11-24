@@ -158,3 +158,6 @@
 (setq eshell-prompt-function #'my/eshell-prompt)
 (setq eshell-prompt-regexp "^\\[.*\\] ➜ ")  ;; must match the prompt
 (setq eshell-highlight-prompt nil)            ;; optional: enables face handling
+
+(with-eval-after-load 'eshell
+  (define-key eshell-mode-map (kbd "C-r") #'helm-eshell-history))
