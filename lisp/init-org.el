@@ -13,6 +13,15 @@
                            ))
 (add-hook 'org-mode-hook #'org-indent-mode)
 
+(setq org-agenda-files '("~/src/org/inbox.org"
+                         "~/src/org/work.org"
+                         "~/src/org/calendar.org"))
+
+
+(setq org-tag-alist '(("@deep" . ?d)
+                      ("@small" . ?s)
+                      ("@mid" . ?m)))
+
 (setq org-todo-keywords
       '((sequence "TODO(t)" "PAUSE(p)" "INPROCESS(s)" "|" "DONE(d)" "CANCELED(c)")))
 
