@@ -20,7 +20,9 @@
 
 (setq org-tag-alist '(("@deep" . ?d)
                       ("@small" . ?s)
-                      ("@mid" . ?m)))
+                      ("@mid" . ?m)
+                      ("@call" . ?c)
+                      ("@today" . ?t)))
 
 (setq org-todo-keywords
       '((sequence "TODO(t)" "PAUSE(p)" "INPROCESS(s)" "|" "DONE(d)" "CANCELED(c)")))
