@@ -82,20 +82,6 @@
 (setq user-mail-address
       (string-trim (shell-command-to-string "git config --global user.email")))
 
-(setq gnus-select-method
-      '(nnimap "gmail"
-               (nnimap-address "imap.gmail.com")
-               (nnimap-server-port 993)
-               (nnimap-stream ssl)))
-
-(setq smtpmail-smtp-server "smtp.gmail.com"
-      smtpmail-smtp-service 587
-      smtpmail-stream-type 'starttls)
-
-(setq gnus-use-cache t)
-(setq gnus-fetch-old-headers 'some)
-(run-at-time "0 min" 300 'gnus-group-get-new-news)
-
 (when (string= user-mail-address "astepanenko@tradingview.com")
   (add-to-list 'load-path "~/src/jira.el")
   (require 'jira)
@@ -159,5 +145,20 @@
 (setq eshell-prompt-regexp "^\\[.*\\] ➜ ")  ;; must match the prompt
 (setq eshell-highlight-prompt nil)            ;; optional: enables face handling
 
+(add-hook 'eshell-mode-hook (lambda ()
+  (local-set-key (kbd "C-c C-r") #'helm-eshell-history)))
+
+(setq-default eshell-history-size '99999)
+
+(defun sasha/eshell-append-to-history ()
+  "Append the most recent command from eshell history to the history file.
+This version uses the built-in `append-to-file` function."
+  (when (and eshell-history-file-name (ring-p eshell-history-ring))
+    (let* ((last-command (ring-ref eshell-history-ring 0))
+           (command-with-newline (concat last-command "\n")))
+      (append-to-file command-with-newline nil eshell-history-file-name))))
+
 (with-eval-after-load 'eshell
-  (define-key eshell-mode-map (kbd "C-r") #'helm-eshell-history))
+  (message "Configuring eshell history hooks...")
+  (remove-hook 'eshell-post-command-hook #'eshell-save-history)
+  (add-hook 'eshell-post-command-hook #'sasha/eshell-append-to-history))
