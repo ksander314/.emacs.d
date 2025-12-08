@@ -3,6 +3,12 @@
 
 (setq auth-sources '("~/.authinfo"))
 
+(with-eval-after-load 'gptel
+  (gptel-make-gemini "Gemini"
+    :key (lambda ()
+           (gptel-api-key-from-auth-source "generative.googleapis.com"))
+    :stream t))
+
 (let ((entry (car (auth-source-search :host "api.openai.com" :max 1))))
   (when entry
     (setq gptel-api-key (plist-get entry :secret))))
