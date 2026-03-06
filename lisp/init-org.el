@@ -1,22 +1,17 @@
 (require-package 'gnuplot)
-(add-to-list 'auto-mode-alist '("\\.org\\'" . org-mode))
 
 (org-babel-do-load-languages
  'org-babel-load-languages
  '((dot . t)
    (gnuplot . t)))
 
-(add-hook 'org-mode-hook (lambda ()
-                           (setq org-enforce-todo-dependencies t)
-                           (setq org-startup-indented t)
-                           (setq org-ellipsis " ⤵")
-                           ))
-(add-hook 'org-mode-hook #'org-indent-mode)
+(setq org-enforce-todo-dependencies t)
+(setq org-startup-indented t)
+(setq org-ellipsis " ⤵")
 
 (setq org-agenda-files '("~/src/org/inbox.org"
                          "~/src/org/work.org"
                          "~/src/org/calendar.org"))
-
 
 (setq org-tag-alist '(("@deep" . ?d)
                       ("@small" . ?s)
@@ -38,11 +33,9 @@
   "Auto-start clock when state changes to INPROCESS and auto-stop when state changes to PAUSE."
   (cond
    ((string= org-state "INPROCESS")
-    ;; Only clock in if no clock is already running.
     (unless org-clock-current-task
       (org-clock-in)))
    ((string= org-state "PAUSE")
-    ;; Only clock out if a clock is running.
     (when org-clock-current-task
       (org-clock-out)))))
 
@@ -60,14 +53,10 @@
       (org-map-entries
        (lambda ()
          (let ((effort (org-entry-get (point) "Effort")))
-           ;; Add Effort if exists
            (when effort
              (let ((effort-minutes (org-duration-to-minutes effort)))
-               (setq total-effort (+ total-effort (truncate effort-minutes)))))
-           ;; Add Clocked time if exists
-           ))
+               (setq total-effort (+ total-effort (truncate effort-minutes)))))))
        nil 'tree)
-      ;; Update totals in the main heading
       (org-back-to-heading t)
       (org-set-property "TotalEffort" (org-minutes-to-hh:mm (truncate total-effort)))
       (org-set-property "TotalClocked" (org-minutes-to-hh:mm (truncate total-clocked)))
@@ -115,11 +104,7 @@ SCHEDULED: %(format-time-string \"<%Y-%m-%d %H:%M>\" (encode-time 0 30 12 (strin
       (org-duration-to-minutes val))))
 
 (defun my/org-calc-workday-stats ()
-  "Calculate workday statistics from the current Org buffer.
-Expected properties:
-- TotalEffort (in format like '8:30')
-- TotalClocked (in format like '3:55')
-And clocked times in LOGBOOK entries for tasks tagged with \"INVISIBLE\" or \"CALL\"."
+  "Calculate workday statistics from the current Org buffer."
   (interactive)
   (save-excursion
     (goto-char (point-min))
@@ -127,23 +112,19 @@ And clocked times in LOGBOOK entries for tasks tagged with \"INVISIBLE\" or \"CA
           (total-clocked 0)
           (invisible-clocked 0)
           (call-clocked 0))
-      ;; Read top-level properties from the first headline (assumed to be the workday header)
       (when (re-search-forward ":TotalEffort:[ \t]*\\([^:\n]+\\)" nil t)
         (setq total-effort (org-duration-to-minutes (match-string 1))))
       (when (re-search-forward ":TotalClocked:[ \t]*\\([^:\n]+\\)" nil t)
         (setq total-clocked (org-duration-to-minutes (match-string 1))))
-      ;; Iterate over all headlines in the file
       (org-map-entries
        (lambda ()
          (let* ((tags (org-get-tags))
-                ;; Sum clocked time in the current subtree using org-clock-sum.
                 (clocked (org-clock-sum nil 'value)))
            (when (member "INVISIBLE" tags)
              (setq invisible-clocked (+ invisible-clocked clocked)))
            (when (member "CALL" tags)
              (setq call-clocked (+ call-clocked clocked)))))
        nil 'file)
-      ;; Calculate unclocked time as difference between total effort and total clocked
       (let ((unclocked (max 0 (- total-effort total-clocked))))
         (message "TasksClocked: %s, InvisibleClocked: %s, CallClocked: %s, UnclockedBetweenStartAndFinish: %s"
                  (org-minutes-to-duration total-clocked)

@@ -1,9 +1,6 @@
 (setq inhibit-startup-screen t)
 (setq initial-scratch-message "")
 (setq visible-bell t)
-(scroll-bar-mode 0)
-(tool-bar-mode 0)
-(menu-bar-mode 0)
 
 (add-to-list 'load-path (expand-file-name "~/.emacs.d/lisp"))
 (require 'init-package)
@@ -22,6 +19,10 @@
 (require 'init-elisp)
 (require 'init-gptel)
 (require 'init-font)
+(require 'init-display)
+(require 'init-eshell)
+(require 'init-python)
+(require 'init-copilot)
 
 (desktop-save-mode t)
 
@@ -33,8 +34,10 @@
 (when (file-exists-p custom-file)
   (load custom-file))
 
-(setq user-mail-address "olexander314@gmail.com")
-(setq user-login-name "Alexander Stepanenko")
+(setq user-full-name
+      (string-trim (shell-command-to-string "git config --global user.name")))
+(setq user-mail-address
+      (string-trim (shell-command-to-string "git config --global user.email")))
 
 (defalias 'list-buffers 'ibuffer)
 
@@ -44,16 +47,11 @@
 (setq grep-command "grep -IHrn -e \"\\([^[:alnum:]_]\\|^\\)\\([^[:alnum:]_]\\|$\\)\"")
 (add-hook 'grep-mode-hook 'hl-line-mode)
 
-(custom-set-variables
- '(flycheck-python-flake8-executable "flake8")
- '(flycheck-python-pylint-executable "python3")
- '(flycheck-python-pycompile-executable "python3"))
-(add-hook 'python-mode-hook 'flycheck-mode)
-(setq gud-pdb-command-name "python -m pdb")
-
 (require-package 'exec-path-from-shell)
 (when (memq window-system '(mac ns x))
   (exec-path-from-shell-initialize))
+
+(setq dired-use-ls-dired nil)
 
 (windmove-default-keybindings 'meta)
 
@@ -61,27 +59,19 @@
 (require-package 'json-mode)
 (add-to-list 'image-types 'svg)
 
-(use-package exec-path-from-shell
-  :ensure t
-  :config
-  ;; This will pull the PATH (and other variables, if needed) from your shell.
-  (exec-path-from-shell-initialize))
+(require-package 'projectile)
+(require-package 'lsp-mode)
+(require-package 'lsp-ui)
 
-;; https://github.com/copilot-emacs/copilot.el
-(add-to-list 'load-path "~/src/copilot.el")
-(require 'copilot)
-(defun my-copilot-setup ()
-  (setq copilot-idle-delay nil)
-  (local-set-key (kbd "C-c a") 'copilot-accept-completion)
-  (local-set-key (kbd "C-c C-e") 'copilot-complete)
-  )
-(add-hook 'copilot-mode-hook 'my-copilot-setup)
-
-(setq user-full-name
-      (string-trim (shell-command-to-string "git config --global user.name")))
-
-(setq user-mail-address
-      (string-trim (shell-command-to-string "git config --global user.email")))
+(with-eval-after-load 'lsp-mode
+  (setq lsp-file-watch-threshold 10000)
+  (setq lsp-enable-snippet nil)
+  (define-key lsp-mode-map (kbd "C-c C-g") 'lsp-find-definition)
+  (define-key lsp-mode-map (kbd "C-c C-r") 'lsp-find-references)
+  (define-key lsp-mode-map (kbd "C-c C-i") 'lsp-find-implementation)
+  (define-key lsp-mode-map (kbd "C-c C-t") 'lsp-find-type-definition)
+  (define-key lsp-mode-map (kbd "C-c C-d") 'lsp-describe-thing-at-point)
+  (define-key lsp-mode-map (kbd "C-c C-f") 'pop-tag-mark))
 
 (when (string= user-mail-address "astepanenko@tradingview.com")
   (add-to-list 'load-path "~/src/jira.el")
@@ -99,69 +89,5 @@
 (require-package 'multiple-cursors)
 (global-set-key (kbd "C-c C-*") 'mc/mark-all-in-region-regexp)
 
-(setq display-line-numbers-type 'relative)
-(global-display-line-numbers-mode 1)
-
-(setq-default show-trailing-whitespace t)
-(column-number-mode t)
-
-(defun disable-line-numbers ()
-  "Disable line numbers in the current buffer."
-  (display-line-numbers-mode -1))
-
-(defun disable-trailing-whitespace ()
-  "Disable trailing whitespace highlighting in the current buffer."
-  (setq show-trailing-whitespace nil))
-
-(add-hook 'term-mode-hook 'disable-line-numbers)
-(add-hook 'gptel-mode-hook 'disable-line-numbers)
-(add-hook 'term-mode-hook 'disable-trailing-whitespace)
-(add-hook 'gptel-mode-hook 'disable-trailing-whitespace)
-(add-hook 'eshell-mode-hook 'disable-trailing-whitespace)
-(add-hook 'vterm-mode-hook 'disable-line-numbers)
-(add-hook 'vterm-mode-hook 'disable-trailing-whitespace)
-
-(require-package 'eshell-syntax-highlighting)
-
-(add-hook 'eshell-mode-hook 'eshell-syntax-highlighting-global-mode)
-
-(defface my/eshell-prompt-dir-face
-  '((t :foreground "#0a64f5" :weight bold));;0a8248
-  "Face for directory in eshell prompt.")
-
-(defface my/eshell-prompt-tail-face
-  '((t :foreground "#ad071a" :weight bold));;0a64f5
-  "Face for tail of eshell prompt.")
-
-(defun my/eshell-current-dir-name ()
-  "Return the basename of `eshell/pwd` (handles ~ and / correctly)."
-  (let ((p (abbreviate-file-name (eshell/pwd))))
-    (file-name-nondirectory (directory-file-name p))))
-
-(defun my/eshell-prompt ()
-  "Prompt: [basename] $ "
-  (let* ((dir (propertize (my/eshell-current-dir-name) 'face 'my/eshell-prompt-dir-face))
-         (tail (propertize "➜" 'face 'my/eshell-prompt-tail-face)))
-    (concat "[" dir "] " tail " ")))
-
-(setq eshell-prompt-function #'my/eshell-prompt)
-(setq eshell-prompt-regexp "^\\[.*\\] ➜ ")  ;; must match the prompt
-(setq eshell-highlight-prompt nil)            ;; optional: enables face handling
-
-(add-hook 'eshell-mode-hook (lambda ()
-  (local-set-key (kbd "C-c C-r") #'helm-eshell-history)))
-
-(setq-default eshell-history-size '99999)
-
-(defun sasha/eshell-append-to-history ()
-  "Append the most recent command from eshell history to the history file.
-This version uses the built-in `append-to-file` function."
-  (when (and eshell-history-file-name (ring-p eshell-history-ring))
-    (let* ((last-command (ring-ref eshell-history-ring 0))
-           (command-with-newline (concat last-command "\n")))
-      (append-to-file command-with-newline nil eshell-history-file-name))))
-
-(with-eval-after-load 'eshell
-  (message "Configuring eshell history hooks...")
-  (remove-hook 'eshell-post-command-hook #'eshell-save-history)
-  (add-hook 'eshell-post-command-hook #'sasha/eshell-append-to-history))
+(let ((f (expand-file-name "~/src/carp/lisp/agent.el")))
+  (when (file-exists-p f) (load-file f)))

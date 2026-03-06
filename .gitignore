@@ -9,3 +9,13 @@ elpa/*
 *.dat
 *.desktop
 custom.el
+.cache/
+.dap-breakpoints
+.lsp-session-v1
+eshell/
+org-clock-save.el
+org-persist/
+projectile-bookmarks.eld
+request/
+tramp
+transient/

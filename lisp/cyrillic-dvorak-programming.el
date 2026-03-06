@@ -115,3 +115,5 @@
  ("W" ?Б)
  ("V" ?Ю)
  ("Z" ?,))
+
+(provide 'cyrillic-dvorak-programming)
