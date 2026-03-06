@@ -7,6 +7,7 @@
 
 (add-to-list 'load-path (expand-file-name "~/.emacs.d/lisp"))
 (require 'init-package)
+(require 'init-claude)
 (require 'init-go)
 (require 'init-utils)
 (require 'init-flymake)
@@ -117,6 +118,8 @@
 (add-hook 'term-mode-hook 'disable-trailing-whitespace)
 (add-hook 'gptel-mode-hook 'disable-trailing-whitespace)
 (add-hook 'eshell-mode-hook 'disable-trailing-whitespace)
+(add-hook 'vterm-mode-hook 'disable-line-numbers)
+(add-hook 'vterm-mode-hook 'disable-trailing-whitespace)
 
 (require-package 'eshell-syntax-highlighting)
 
