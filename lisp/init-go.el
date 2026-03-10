@@ -34,6 +34,8 @@
 
 (defun my/go-setup ()
   (eglot-ensure)
+  (eglot-inlay-hints-mode)
+  (which-function-mode)
   (subword-mode)
   (hl-line-mode)
   (local-set-key (kbd "C-c c") 'project-compile)

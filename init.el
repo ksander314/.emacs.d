@@ -63,6 +63,8 @@
 (windmove-default-keybindings 'meta)
 (add-to-list 'image-types 'svg)
 
+(savehist-mode 1)
+
 ;; Completion framework: vertico + orderless + marginalia + consult
 (use-package vertico
   :init (vertico-mode))
