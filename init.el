@@ -30,6 +30,7 @@
 (require 'init-eshell)
 (require 'init-python)
 (require 'init-copilot)
+(require 'init-keystroke-log)
 
 (desktop-save-mode t)
 
