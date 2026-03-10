@@ -1,26 +1,28 @@
-(require-package 'haskell-mode)
+(use-package haskell-mode
+  :mode "\\.ghci\\'"
+  :hook ((haskell-mode . turn-on-haskell-doc-mode)
+         (haskell-mode . turn-on-haskell-indent)
+         (haskell-mode . subword-mode)
+         (haskell-mode . hl-line-mode)
+         (inferior-haskell-mode . turn-on-haskell-doc-mode))
+  :bind (:map haskell-mode-map
+         ("C-c h" . hoogle)
+         ("C-c C-c" . haskell-compile)
+         ("C-c C-l" . haskell-process-load-file)
+         ("C-c C-b" . haskell-interactive-switch)
+         ("C-c C-t" . haskell-process-do-type)
+         ("C-c C-i" . haskell-process-do-info))
+  :custom
+  (haskell-tags-on-save t)
+  (haskell-compile-cabal-build-command
+   "cd %s && ~/.cabal/bin/cabal build -j8 --ghc-option=-ferror-spans")
+  (haskell-process-path-cabal "~/.cabal/bin/cabal"))
 
-(dolist (hook '(haskell-mode-hook inferior-haskell-mode-hook))
-  (add-hook hook 'turn-on-haskell-doc-mode))
+(use-package ghci-completion
+  :hook (inferior-haskell-mode . turn-on-ghci-completion))
 
-(add-auto-mode 'haskell-mode "\\.ghci\\'")
-
-(add-hook 'haskell-mode-hook 'turn-on-haskell-indent)
-(add-hook 'haskell-mode-hook (lambda () (subword-mode +1)))
-
-(with-eval-after-load 'haskell-mode
-  (define-key haskell-mode-map (kbd "C-c h") 'hoogle)
-  (define-key haskell-mode-map (kbd "C-c C-c") 'haskell-compile)
-  (define-key haskell-mode-map (kbd "C-c C-l") 'haskell-process-load-file)
-  (define-key haskell-mode-map (kbd "C-c C-b") 'haskell-interactive-switch)
-  (define-key haskell-mode-map (kbd "C-c C-t") 'haskell-process-do-type)
-  (define-key haskell-mode-map (kbd "C-c C-i") 'haskell-process-do-info))
-
-(require-package 'ghci-completion)
-(add-hook 'inferior-haskell-mode-hook 'turn-on-ghci-completion)
-
-(require-package 'flymake-haskell-multi)
-(add-hook 'haskell-mode-hook #'flymake-haskell-multi-load)
+(use-package flymake-haskell-multi
+  :hook (haskell-mode . flymake-haskell-multi-load))
 
 (with-eval-after-load 'compile
   (let ((alias 'ghc-at-regexp))
@@ -38,10 +40,5 @@
 
 (with-eval-after-load 'haskell-cabal
   (define-key haskell-cabal-mode-map (kbd "C-c C-c") 'haskell-compile))
-
-(setq haskell-compile-cabal-build-command "cd %s && ~/.cabal/bin/cabal build -j8 --ghc-option=-ferror-spans")
-(setq haskell-process-path-cabal "~/.cabal/bin/cabal")
-
-(add-hook 'haskell-mode-hook 'hl-line-mode)
 
 (provide 'init-haskell)

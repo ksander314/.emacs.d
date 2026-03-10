@@ -3,22 +3,29 @@
 (setq visible-bell t)
 
 (add-to-list 'load-path (expand-file-name "~/.emacs.d/lisp"))
-(require 'init-package)
+
+;; Package management
+(require 'package)
+(add-to-list 'package-archives '("melpa" . "https://melpa.org/packages/") t)
+(package-initialize)
+(unless (package-installed-p 'vertico)
+  (package-refresh-contents))
+(setq use-package-always-ensure t)
+
+;; Auth
+(setq auth-sources '("~/.authinfo"))
+
+;; Modules
+(require 'init-utils)
 (require 'init-claude)
 (require 'init-go)
-(require 'init-utils)
-(require 'init-flymake)
 (require 'init-c++)
 (require 'init-haskell)
-(require 'init-locale)
-(require 'init-theme)
 (require 'init-org)
 (require 'init-git)
 (require 'init-rust)
 (require 'init-erl)
-(require 'init-elisp)
 (require 'init-gptel)
-(require 'init-font)
 (require 'init-display)
 (require 'init-eshell)
 (require 'init-python)
@@ -40,54 +47,105 @@
       (string-trim (shell-command-to-string "git config --global user.email")))
 
 (defalias 'list-buffers 'ibuffer)
-
 (put 'upcase-region 'disabled nil)
 (put 'downcase-region 'disabled nil)
-
-(setq grep-command "grep -IHrn -e \"\\([^[:alnum:]_]\\|^\\)\\([^[:alnum:]_]\\|$\\)\"")
+(setq-default indent-tabs-mode nil)
+(setq large-file-warning-threshold nil)
+(setq project-vc-ignores '("vendor/" "node_modules/"))
 (add-hook 'grep-mode-hook 'hl-line-mode)
+(global-set-key (kbd "C-c c") 'compile)
 
-(require-package 'exec-path-from-shell)
-(when (memq window-system '(mac ns x))
-  (exec-path-from-shell-initialize))
+(use-package exec-path-from-shell
+  :if (memq window-system '(mac ns x))
+  :config (exec-path-from-shell-initialize))
 
 (setq dired-use-ls-dired nil)
-
 (windmove-default-keybindings 'meta)
-
-(require-package 'yaml-mode)
-(require-package 'json-mode)
 (add-to-list 'image-types 'svg)
 
-(require-package 'projectile)
-(require-package 'lsp-mode)
-(require-package 'lsp-ui)
+;; Completion framework: vertico + orderless + marginalia + consult
+(use-package vertico
+  :init (vertico-mode))
 
-(with-eval-after-load 'lsp-mode
-  (setq lsp-file-watch-threshold 10000)
-  (setq lsp-enable-snippet nil)
-  (define-key lsp-mode-map (kbd "C-c C-g") 'lsp-find-definition)
-  (define-key lsp-mode-map (kbd "C-c C-r") 'lsp-find-references)
-  (define-key lsp-mode-map (kbd "C-c C-i") 'lsp-find-implementation)
-  (define-key lsp-mode-map (kbd "C-c C-t") 'lsp-find-type-definition)
-  (define-key lsp-mode-map (kbd "C-c C-d") 'lsp-describe-thing-at-point)
-  (define-key lsp-mode-map (kbd "C-c C-f") 'pop-tag-mark))
+(use-package orderless
+  :custom
+  (completion-styles '(orderless basic))
+  (completion-category-overrides '((file (styles partial-completion)))))
 
+(use-package marginalia
+  :init (marginalia-mode))
+
+(use-package consult
+  :bind (("C-x b" . consult-buffer)
+         ("M-g g" . consult-goto-line)
+         ("M-s r" . consult-ripgrep)
+         ("M-s l" . consult-line)))
+
+;; Inline completion
+(use-package corfu
+  :init (global-corfu-mode))
+
+;; Tree-sitter
+(setq treesit-font-lock-level 4)
+(use-package treesit-auto
+  :config
+  (setq treesit-auto-install 'prompt)
+  (treesit-auto-add-to-auto-mode-alist 'all)
+  (global-treesit-auto-mode))
+
+;; Flymake (built-in)
+(global-set-key (kbd "C-c e") 'flymake-goto-next-error)
+(global-set-key (kbd "C-c o") 'flymake-goto-prev-error)
+
+;; Eglot (built-in)
+(with-eval-after-load 'eglot
+  (define-key eglot-mode-map (kbd "C-c C-g") 'xref-find-definitions)
+  (define-key eglot-mode-map (kbd "C-c C-r") 'xref-find-references)
+  (define-key eglot-mode-map (kbd "C-c C-d") 'eldoc)
+  (define-key eglot-mode-map (kbd "C-c C-a") 'eglot-code-actions)
+  (define-key eglot-mode-map (kbd "C-c C-n") 'eglot-rename)
+  (define-key eglot-mode-map (kbd "C-c C-f") 'xref-go-back)
+  (define-key eglot-mode-map (kbd "C-c C-i") 'eglot-find-implementation)
+  (push '((c++-mode c++-ts-mode c-mode c-ts-mode)
+          "clangd" "--header-insertion=never")
+        eglot-server-programs))
+
+(setq eglot-events-buffer-config '(:size 0))
+
+(setq-default eglot-workspace-configuration
+              '(:gopls (:staticcheck t)
+                :rust-analyzer (:check (:command "clippy"))))
+
+;; Theme & Font
+(use-package color-theme-sanityinc-solarized
+  :config (load-theme 'sanityinc-solarized-light t))
+(set-face-attribute 'default nil :font "Inconsolata" :height 180)
+
+;; Locale
+(require 'cyrillic-dvorak-programming)
+(setq default-input-method "cyrillic-dvorak-programming")
+
+;; Misc
+(use-package yaml-mode :defer t)
+(use-package json-mode :defer t)
+(use-package editorconfig :config (editorconfig-mode 1))
+(use-package multiple-cursors
+  :bind ("C-c C-*" . mc/mark-all-in-region-regexp))
+(use-package dape
+  :commands (dape dape-breakpoint-toggle)
+  :config
+  (setq dape-request-timeout 30))
+
+;; JIRA (conditional)
 (when (string= user-mail-address "astepanenko@tradingview.com")
   (add-to-list 'load-path "~/src/jira.el")
   (require 'jira)
-  (use-package jira
-    :config
-    (setq jira-base-url "https://tradingview-air.atlassian.net")
-    (setq jira-token-is-personal-access-token nil)
-    (setq jira-api-version 3))
-
+  (setq jira-base-url "https://tradingview-air.atlassian.net"
+        jira-token-is-personal-access-token nil
+        jira-api-version 3)
   (add-hook 'jira-issues-mode-hook 'hl-line-mode)
-
   (setq jira-issues-table-fields '(:key :issue-type-name :status-name :assignee-name :summary)))
 
-(require-package 'multiple-cursors)
-(global-set-key (kbd "C-c C-*") 'mc/mark-all-in-region-regexp)
-
+;; External
 (let ((f (expand-file-name "~/src/carp/lisp/agent.el")))
   (when (file-exists-p f) (load-file f)))

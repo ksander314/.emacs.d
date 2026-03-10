@@ -1,4 +1,4 @@
-(require-package 'gnuplot)
+(use-package gnuplot :defer t)
 
 (org-babel-do-load-languages
  'org-babel-load-languages

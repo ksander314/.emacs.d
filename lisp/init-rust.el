@@ -1,28 +1,23 @@
-(require-package 'rust-mode)
-(require-package 'cargo)
-(require-package 'toml-mode)
-(require-package 'flycheck-rust)
+(use-package rust-mode
+  :defer t
+  :config (setq rust-format-on-save t))
 
-(setq lsp-rust-server 'rust-analyzer)
-(setq lsp-rust-analyzer-cargo-watch-command "clippy")
-(setq lsp-rust-analyzer-server-display-inlay-hints t)
+(use-package cargo :defer t)
+(use-package toml-mode :defer t)
 
-(with-eval-after-load 'rust-mode
-  (define-key rust-mode-map (kbd "C-c C-p") 'projectile-commander)
-  (define-key rust-mode-map (kbd "C-c c") 'rust-compile)
-  (define-key rust-mode-map (kbd "C-c r") 'rust-run)
-  (define-key rust-mode-map (kbd "C-c l") 'rust-run-clippy)
-  (define-key rust-mode-map (kbd "C-c t") 'cargo-process-current-test))
-
-(defun my-rust-mode-setup ()
-  (lsp-deferred)
-  (setq lsp-ui-doc-enable nil)
-  (projectile-mode 1)
+(defun my/rust-setup ()
+  (eglot-ensure)
+  (eglot-inlay-hints-mode)
   (cargo-minor-mode 1)
   (hl-line-mode 1)
-  (setq rust-format-on-save t)
-  (setq indent-tabs-mode nil))
+  (subword-mode 1)
+  (setq-local indent-tabs-mode nil)
+  (local-set-key (kbd "C-c c") 'rust-compile)
+  (local-set-key (kbd "C-c r") 'rust-run)
+  (local-set-key (kbd "C-c l") 'rust-run-clippy)
+  (local-set-key (kbd "C-c t") 'cargo-process-current-test))
 
-(add-hook 'rust-mode-hook 'my-rust-mode-setup)
+(dolist (hook '(rust-mode-hook rust-ts-mode-hook))
+  (add-hook hook #'my/rust-setup))
 
 (provide 'init-rust)

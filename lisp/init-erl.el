@@ -1,14 +1,12 @@
-(require-package 'erlang)
-(defun my-erl-mode-hook ()
-  (local-set-key (kbd "C-c C-p") 'projectile-commander)
-  )
-(add-hook 'erlang-mode-hook
-          (lambda ()
-            (setq-local whitespace-line-column 100)
-            (setq-local whitespace-style '(face lines-tail))
-            (whitespace-mode 1)))
-(add-hook 'erlang-mode-hook 'hl-line-mode)
-(add-hook 'erlang-mode-hook 'subword-mode)
-(add-hook 'erlang-mode-hook 'my-erl-mode-hook)
-(add-hook 'erlang-mode-hook 'projectile-mode)
+(use-package erlang :defer t)
+
+(defun my/erl-setup ()
+  (subword-mode)
+  (hl-line-mode)
+  (setq-local whitespace-line-column 100)
+  (setq-local whitespace-style '(face lines-tail))
+  (whitespace-mode 1))
+
+(add-hook 'erlang-mode-hook #'my/erl-setup)
+
 (provide 'init-erl)

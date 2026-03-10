@@ -1,6 +1,5 @@
-(require-package 'eshell-syntax-highlighting)
-
-(add-hook 'eshell-mode-hook 'eshell-syntax-highlighting-global-mode)
+(use-package eshell-syntax-highlighting
+  :hook (eshell-mode . eshell-syntax-highlighting-global-mode))
 
 (defface my/eshell-prompt-dir-face
   '((t :foreground "#0a64f5" :weight bold))
@@ -25,8 +24,8 @@
 (setq eshell-prompt-regexp "^\\[.*\\] ➜ ")
 (setq eshell-highlight-prompt nil)
 
-(add-hook 'eshell-mode-hook (lambda ()
-  (local-set-key (kbd "C-c C-r") #'helm-eshell-history)))
+(add-hook 'eshell-mode-hook
+          (lambda () (local-set-key (kbd "C-c C-r") #'consult-history)))
 
 (setq-default eshell-history-size 99999)
 

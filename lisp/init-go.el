@@ -1,62 +1,55 @@
-(require-package 'go-mode)
-(require-package 'dap-mode)
-(require-package 'gotest)
-(require-package 'flycheck-golangci-lint)
+(use-package go-mode :defer t)
+(use-package gotest :defer t)
 
-(setq lsp-gopls-staticcheck t)
-(setq lsp-ui-doc-enable t
-      lsp-ui-peek-enable t
-      lsp-ui-sideline-enable nil
-      lsp-ui-imenu-enable t
-      lsp-ui-flycheck-enable t)
+(defun my/go-eglot-organize-imports ()
+  (when (eglot-managed-p)
+    (ignore-errors
+      (eglot-code-action-organize-imports (point-min) (point-max)))))
 
-(defvar-local my-flycheck-local-cache nil)
-(defun my-flycheck-local-checker-get (fn checker property)
-  (if (eq checker 'lsp)
-      (or (alist-get property my-flycheck-local-cache)
-          (funcall fn checker property))
-    (funcall fn checker property)))
+(defun my/go-before-save ()
+  (when (eglot-managed-p)
+    (ignore-errors (eglot-format-buffer))
+    (my/go-eglot-organize-imports)))
 
-(with-eval-after-load 'flycheck
-  (add-hook 'flycheck-mode-hook #'flycheck-golangci-lint-setup)
-  (advice-add 'flycheck-checker-get :around 'my-flycheck-local-checker-get)
-  (add-hook 'lsp-managed-mode-hook
-            (lambda ()
-              (when (derived-mode-p 'go-mode)
-                (setq my-flycheck-local-cache '((next-checkers . (golangci-lint))))))))
-(setq flycheck-golangci-lint-config "~/.golangci.yml")
+(defun my/go-test-name-at-point ()
+  "Return the name of the Go test function at or before point."
+  (save-excursion
+    (end-of-line)
+    (when (re-search-backward "^func \\(Test[a-zA-Z0-9_]+\\)" nil t)
+      (match-string-no-properties 1))))
 
-(defun my-go-mode-hook ()
-  (add-hook 'dap-stopped-hook (lambda (arg) (call-interactively #'dap-hydra)))
-  (local-set-key (kbd "C-c c") 'projectile-compile-project)
+(defun my/go-debug-test ()
+  "Debug the Go test function at point with dape."
+  (interactive)
+  (let ((test-name (my/go-test-name-at-point))
+        (dir (file-name-directory (buffer-file-name))))
+    (unless test-name
+      (user-error "No test function found at point"))
+    (setq-local dape-command
+                `(dlv :mode "test"
+                      :cwd ,dir
+                      :program ,dir
+                      :args ["-test.run" ,(concat "^" test-name "$")]))
+    (call-interactively 'dape)))
+
+(defun my/go-setup ()
+  (eglot-ensure)
+  (subword-mode)
+  (hl-line-mode)
+  (local-set-key (kbd "C-c c") 'project-compile)
   (local-set-key (kbd "C-c t") 'go-test-current-test)
-  (local-set-key (kbd "C-c C-s") 'dap-debug)
-  (local-set-key (kbd "C-c C-b") 'dap-breakpoint-toggle)
-  (local-set-key (kbd "C-c C-p") 'projectile-commander)
+  (local-set-key (kbd "C-c C-s") 'dape)
+  (local-set-key (kbd "C-c C-b") 'dape-breakpoint-toggle)
+  (local-set-key (kbd "C-c C-t") 'my/go-debug-test)
   (local-set-key (kbd "C-c C-c") 'comment-region)
+  (add-hook 'before-save-hook #'my/go-before-save nil t)
+  (unless (string-match-p "go" (or compile-command ""))
+    (setq-local compile-command "go build -v && go test -v && go vet"))
+  (setq-local whitespace-line-column 100)
+  (setq-local whitespace-style '(face lines-tail))
+  (whitespace-mode 1))
 
-  (if (not (string-match "go" compile-command))
-      (set (make-local-variable 'compile-command)
-           "go build -v && go test -v && go vet")))
-
-(defun lsp-go-install-save-hooks ()
-  (add-hook 'before-save-hook #'lsp-format-buffer t t)
-  (add-hook 'before-save-hook #'lsp-organize-imports t t))
-
-(add-hook 'go-mode-hook 'lsp-deferred)
-(add-hook 'go-mode-hook #'lsp-go-install-save-hooks)
-(add-hook 'go-mode-hook 'lsp-ui-mode)
-(add-hook 'go-mode-hook 'hl-line-mode)
-(add-hook 'go-mode-hook 'my-go-mode-hook)
-(add-hook 'go-mode-hook 'subword-mode)
-(add-hook 'go-mode-hook 'projectile-mode)
-(add-hook 'go-mode-hook
-          (lambda ()
-            (setq-local whitespace-line-column 100)
-            (setq-local whitespace-style '(face lines-tail))
-            (whitespace-mode 1)))
-
-(with-eval-after-load 'dap-mode
-  (require 'dap-dlv-go))
+(dolist (hook '(go-mode-hook go-ts-mode-hook))
+  (add-hook hook #'my/go-setup))
 
 (provide 'init-go)
