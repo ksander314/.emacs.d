@@ -127,6 +127,9 @@
 ;; Locale
 (require 'cyrillic-dvorak-programming)
 (setq default-input-method "cyrillic-dvorak-programming")
+(use-package reverse-im
+  :config
+  (reverse-im-activate "cyrillic-dvorak-programming"))
 
 ;; Misc
 (use-package yaml-mode :defer t)
