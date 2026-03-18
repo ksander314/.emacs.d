@@ -12,15 +12,9 @@
   "Disable trailing whitespace highlighting in the current buffer."
   (setq show-trailing-whitespace nil))
 
-(defun my/vterm-scroll-settings ()
-  (setq-local scroll-conservatively 101
-              scroll-margin 0))
-
-(dolist (hook '(term-mode-hook vterm-mode-hook gptel-mode-hook))
+(dolist (hook '(term-mode-hook gptel-mode-hook))
   (add-hook hook 'disable-line-numbers)
   (add-hook hook 'disable-trailing-whitespace))
-
-(add-hook 'vterm-mode-hook #'my/vterm-scroll-settings)
 
 (add-hook 'eshell-mode-hook 'disable-trailing-whitespace)
 

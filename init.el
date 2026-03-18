@@ -19,7 +19,6 @@
 
 ;; Modules
 (require 'init-utils)
-(require 'init-claude)
 (require 'init-go)
 (require 'init-c++)
 (require 'init-haskell)

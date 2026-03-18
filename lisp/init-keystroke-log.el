@@ -23,7 +23,7 @@
         (erase-buffer)))))
 
 (defun my/klog-record ()
-  (when (and (not (derived-mode-p 'vterm-mode 'eshell-mode 'term-mode))
+  (when (and (not (derived-mode-p 'eshell-mode 'term-mode))
              (or (eq this-command 'self-insert-command)
                  (eq this-command 'delete-backward-char)
                  (eq this-command 'backward-delete-char-untabify)))

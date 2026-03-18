@@ -23,6 +23,7 @@ tree-sitter/
 .claude/
 .claude-code-mcp.log
 /.agent-shell/
+/agent/
 /history
 /keystroke-log.csv
 /projects
