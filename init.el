@@ -8,7 +8,9 @@
 (require 'package)
 (add-to-list 'package-archives '("melpa" . "https://melpa.org/packages/") t)
 (package-initialize)
-(unless (package-installed-p 'vertico)
+(unless (and (package-installed-p 'vertico)
+             (package-installed-p 'system-packages)
+             (package-installed-p 'agent-shell))
   (package-refresh-contents))
 (setq use-package-always-ensure t)
 
@@ -30,6 +32,7 @@
 (require 'init-eshell)
 (require 'init-python)
 (require 'init-copilot)
+(require 'init-agent-shell)
 (require 'init-keystroke-log)
 
 (desktop-save-mode t)

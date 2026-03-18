@@ -34,7 +34,8 @@
   (when (and (eq major-mode 'claude-code-vterm-mode) vterm--process)
     (process-send-string vterm--process "\e[13;2u")))
 
-(define-key claude-code-vterm-mode-map (kbd "C-c C-j") #'my/claude-code-send-newline)
+(with-eval-after-load 'claude-code
+  (define-key claude-code-vterm-mode-map (kbd "C-c C-j") #'my/claude-code-send-newline))
 
 (defun my/claude-open-file-at-point ()
   "Open file path at point in Claude Code buffer.

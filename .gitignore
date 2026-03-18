@@ -22,3 +22,7 @@ transient/
 tree-sitter/
 .claude/
 .claude-code-mcp.log
+/.agent-shell/
+/history
+/keystroke-log.csv
+/projects
