@@ -27,4 +27,17 @@
   (interactive)
   (browse-url (concat "file://" (buffer-file-name))))
 
+(defun ffap-with-line ()
+  "Like `ffap' but handles file:line format."
+  (interactive)
+  (let ((thing (ffap-string-at-point)))
+    (if (and thing (string-match "\\(.+\\):\\([0-9]+\\)" thing))
+        (let ((file (match-string 1 thing))
+              (line (string-to-number (match-string 2 thing))))
+          (find-file file)
+          (goto-line line))
+      (ffap))))
+
+(global-set-key (kbd "C-c f") 'ffap-with-line)
+
 (provide 'init-utils)
