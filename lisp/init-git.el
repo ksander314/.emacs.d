@@ -5,9 +5,9 @@
   :bind ("C-c g g" . magit-status))
 
 (use-package git-messenger
-  :bind ("C-c g p" . git-messenger:popup-message)
-  :config
-  (define-key git-messenger-map (kbd "m") 'git-messenger:copy-message))
+  :bind (("C-c g p" . git-messenger:popup-message)
+         :map git-messenger-map
+         ("m" . git-messenger:copy-message)))
 
 (use-package gptel-magit
   :after magit

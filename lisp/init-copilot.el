@@ -3,10 +3,10 @@
   (when (file-exists-p copilot-dir)
     (add-to-list 'load-path copilot-dir)
     (require 'copilot)
-    (defun my-copilot-setup ()
+    (defun my/copilot-setup ()
       (setq copilot-idle-delay nil)
-      (local-set-key (kbd "TAB") 'copilot-accept-completion)
+      (local-set-key (kbd "C-c a") 'copilot-accept-completion)
       (local-set-key (kbd "C-c C-e") 'copilot-complete))
-    (add-hook 'copilot-mode-hook 'my-copilot-setup)))
+    (add-hook 'copilot-mode-hook 'my/copilot-setup)))
 
 (provide 'init-copilot)

@@ -8,9 +8,7 @@
 (require 'package)
 (add-to-list 'package-archives '("melpa" . "https://melpa.org/packages/") t)
 (package-initialize)
-(unless (and (package-installed-p 'vertico)
-             (package-installed-p 'system-packages)
-             (package-installed-p 'agent-shell))
+(unless package-archive-contents
   (package-refresh-contents))
 (setq use-package-always-ensure t)
 
@@ -44,15 +42,6 @@
 (when (file-exists-p custom-file)
   (load custom-file))
 
-(setq user-full-name
-      (with-temp-buffer
-        (call-process "git" nil t nil "config" "--global" "user.name")
-        (string-trim (buffer-string))))
-(setq user-mail-address
-      (with-temp-buffer
-        (call-process "git" nil t nil "config" "--global" "user.email")
-        (string-trim (buffer-string))))
-
 (defalias 'list-buffers 'ibuffer)
 (put 'upcase-region 'disabled nil)
 (put 'downcase-region 'disabled nil)
@@ -65,6 +54,15 @@
 (use-package exec-path-from-shell
   :if (memq window-system '(mac ns x))
   :config (exec-path-from-shell-initialize))
+
+(setq user-full-name
+      (with-temp-buffer
+        (call-process "git" nil t nil "config" "--global" "user.name")
+        (string-trim (buffer-string))))
+(setq user-mail-address
+      (with-temp-buffer
+        (call-process "git" nil t nil "config" "--global" "user.email")
+        (string-trim (buffer-string))))
 
 (setq dired-use-ls-dired nil)
 (windmove-default-keybindings 'meta)

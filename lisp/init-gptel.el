@@ -5,9 +5,11 @@
     :key (lambda ()
            (gptel-api-key-from-auth-source "generative.googleapis.com"))
     :stream t)
-  (let ((entry (car (auth-source-search :host "api.openai.com" :max 1))))
-    (when entry
-      (setq gptel-api-key (funcall (plist-get entry :secret))))))
+  (setq gptel-api-key
+        (lambda ()
+          (let ((entry (car (auth-source-search :host "api.openai.com" :max 1))))
+            (when entry
+              (funcall (plist-get entry :secret)))))))
 
 (add-hook 'gptel-mode-hook
           (lambda ()

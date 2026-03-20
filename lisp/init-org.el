@@ -4,77 +4,41 @@
   (org-babel-do-load-languages
    'org-babel-load-languages
    '((dot . t)
-     (gnuplot . t))))
+     (gnuplot . t)))
 
-(setq org-enforce-todo-dependencies t)
-(setq org-startup-indented t)
-(setq org-ellipsis " ⤵")
+  (setq org-enforce-todo-dependencies t)
+  (setq org-startup-indented t)
+  (setq org-ellipsis " ⤵")
 
-(setq org-agenda-files '("~/src/org/inbox.org"
-                         "~/src/org/work.org"
-                         "~/src/org/calendar.org"))
+  (setq org-agenda-files '("~/src/org/inbox.org"
+                           "~/src/org/work.org"
+                           "~/src/org/calendar.org"))
 
-(setq org-tag-alist '(("@deep" . ?d)
-                      ("@small" . ?s)
-                      ("@mid" . ?m)
-                      ("@call" . ?c)
-                      ("@today" . ?t)))
+  (setq org-tag-alist '(("@deep" . ?d)
+                        ("@small" . ?s)
+                        ("@mid" . ?m)
+                        ("@call" . ?c)
+                        ("@today" . ?t)))
 
-(setq org-todo-keywords
-      '((sequence "TODO(t)" "PAUSE(p)" "INPROCESS(s)" "|" "DONE(d)" "CANCELED(c)")))
+  (setq org-todo-keywords
+        '((sequence "TODO(t)" "PAUSE(p)" "INPROCESS(s)" "|" "DONE(d)" "CANCELED(c)")))
 
-(setq org-todo-keyword-faces
-      '(("TODO" . org-warning) ("INPROCESS" . "orange")
-        ("CANCELED" . "green")))
+  (setq org-todo-keyword-faces
+        '(("TODO" . org-warning) ("INPROCESS" . "orange")
+          ("CANCELED" . "green")))
 
-(setq org-log-done 'time)
-(setq org-log-into-drawer t)
+  (setq org-log-done 'time)
+  (setq org-log-into-drawer t)
 
-(defun my-org-auto-clock-on-state-change ()
-  "Auto-start clock when state changes to INPROCESS and auto-stop when state changes to PAUSE."
-  (cond
-   ((string= org-state "INPROCESS")
-    (unless org-clock-current-task
-      (org-clock-in)))
-   ((string= org-state "PAUSE")
-    (when org-clock-current-task
-      (org-clock-out)))))
+  (setq org-clock-persist 'history)
+  (org-clock-persistence-insinuate)
 
-(add-hook 'org-after-todo-state-change-hook #'my-org-auto-clock-on-state-change)
-
-(setq org-clock-persist 'history)
-(org-clock-persistence-insinuate)
-
-(defun org-calculate-totals-for-day ()
-  "Calculate total effort and clocked time for the current Org heading."
-  (interactive)
-  (save-excursion
-    (let ((total-effort 0)
-          (total-clocked (org-clock-sum-current-item)))
-      (org-map-entries
-       (lambda ()
-         (let ((effort (org-entry-get (point) "Effort")))
-           (when effort
-             (let ((effort-minutes (org-duration-to-minutes effort)))
-               (setq total-effort (+ total-effort (truncate effort-minutes)))))))
-       nil 'tree)
-      (org-back-to-heading t)
-      (org-set-property "TotalEffort" (org-minutes-to-hh:mm (truncate total-effort)))
-      (org-set-property "TotalClocked" (org-minutes-to-hh:mm (truncate total-clocked)))
-      (message "Totals updated: Effort=%s, Clocked=%s"
-               (org-minutes-to-hh:mm (truncate total-effort))
-               (org-minutes-to-hh:mm (truncate total-clocked))))))
-
-(defun org-minutes-to-hh:mm (minutes)
-  "Convert minutes to HH:MM format."
-  (format "%d:%02d" (/ minutes 60) (% minutes 60)))
-
-(setq org-capture-templates
-      '(("d" "Daily Work Log"
-         entry (file (lambda ()
-                       (format "~/org/%d.org"
-                               (string-to-number (format-time-string "%V")))))
-         "\n* %(format-time-string \"%Y-%m-%d\") [/]
+  (setq org-capture-templates
+        '(("d" "Daily Work Log"
+           entry (file (lambda ()
+                         (format "~/org/%d.org"
+                                 (string-to-number (format-time-string "%V")))))
+           "\n* %(format-time-string \"%Y-%m-%d\") [/]
 :PROPERTIES:
 :StartWorkingAt: %(format-time-string \"<%Y-%m-%d %H:%M>\" (current-time))
 :FinishWorkingAt: %(format-time-string \"<%Y-%m-%d %H:%M>\" (time-add (current-time) (seconds-to-time (* 8.5 3600))))
@@ -98,6 +62,42 @@ SCHEDULED: %(format-time-string \"<%Y-%m-%d %H:%M>\" (encode-time 0 30 12 (strin
 "
 )))
 
+  (add-hook 'org-after-todo-state-change-hook #'my/org-auto-clock-on-state-change))
+
+(defun my/org-auto-clock-on-state-change ()
+  "Auto-start clock when state changes to INPROCESS and auto-stop when state changes to PAUSE."
+  (cond
+   ((string= org-state "INPROCESS")
+    (unless org-clock-current-task
+      (org-clock-in)))
+   ((string= org-state "PAUSE")
+    (when org-clock-current-task
+      (org-clock-out)))))
+
+(defun my/org-minutes-to-hh:mm (minutes)
+  "Convert minutes to HH:MM format."
+  (format "%d:%02d" (/ minutes 60) (% minutes 60)))
+
+(defun my/org-calculate-totals-for-day ()
+  "Calculate total effort and clocked time for the current Org heading."
+  (interactive)
+  (save-excursion
+    (let ((total-effort 0)
+          (total-clocked (org-clock-sum-current-item)))
+      (org-map-entries
+       (lambda ()
+         (let ((effort (org-entry-get (point) "Effort")))
+           (when effort
+             (let ((effort-minutes (org-duration-to-minutes effort)))
+               (setq total-effort (+ total-effort (truncate effort-minutes)))))))
+       nil 'tree)
+      (org-back-to-heading t)
+      (org-set-property "TotalEffort" (my/org-minutes-to-hh:mm (truncate total-effort)))
+      (org-set-property "TotalClocked" (my/org-minutes-to-hh:mm (truncate total-clocked)))
+      (message "Totals updated: Effort=%s, Clocked=%s"
+               (my/org-minutes-to-hh:mm (truncate total-effort))
+               (my/org-minutes-to-hh:mm (truncate total-clocked))))))
+
 (defun my/org-read-duration-property (prop)
   "Read a duration property PROP from the current headline and convert it to minutes."
   (let ((val (org-entry-get nil prop)))
@@ -120,7 +120,7 @@ SCHEDULED: %(format-time-string \"<%Y-%m-%d %H:%M>\" (encode-time 0 30 12 (strin
       (org-map-entries
        (lambda ()
          (let* ((tags (org-get-tags))
-                (clocked (org-clock-sum nil 'value)))
+                (clocked (org-clock-sum-current-item)))
            (when (member "INVISIBLE" tags)
              (setq invisible-clocked (+ invisible-clocked clocked)))
            (when (member "CALL" tags)
