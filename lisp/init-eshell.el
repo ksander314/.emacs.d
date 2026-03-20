@@ -29,7 +29,7 @@
 
 (setq-default eshell-history-size 99999)
 
-(defun sasha/eshell-append-to-history ()
+(defun my/eshell-append-to-history ()
   "Append the most recent command from eshell history to the history file."
   (when (and eshell-history-file-name (ring-p eshell-history-ring))
     (let* ((last-command (ring-ref eshell-history-ring 0))
@@ -38,6 +38,6 @@
 
 (with-eval-after-load 'eshell
   (remove-hook 'eshell-post-command-hook #'eshell-save-history)
-  (add-hook 'eshell-post-command-hook #'sasha/eshell-append-to-history))
+  (add-hook 'eshell-post-command-hook #'my/eshell-append-to-history))
 
 (provide 'init-eshell)

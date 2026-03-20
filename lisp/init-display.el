@@ -12,7 +12,7 @@
   "Disable trailing whitespace highlighting in the current buffer."
   (setq show-trailing-whitespace nil))
 
-(dolist (hook '(term-mode-hook gptel-mode-hook))
+(dolist (hook '(term-mode-hook gptel-mode-hook agent-shell-mode-hook))
   (add-hook hook 'disable-line-numbers)
   (add-hook hook 'disable-trailing-whitespace))
 

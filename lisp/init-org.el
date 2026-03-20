@@ -1,9 +1,10 @@
 (use-package gnuplot :defer t)
 
-(org-babel-do-load-languages
- 'org-babel-load-languages
- '((dot . t)
-   (gnuplot . t)))
+(with-eval-after-load 'org
+  (org-babel-do-load-languages
+   'org-babel-load-languages
+   '((dot . t)
+     (gnuplot . t))))
 
 (setq org-enforce-todo-dependencies t)
 (setq org-startup-indented t)

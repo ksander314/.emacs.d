@@ -35,7 +35,8 @@
         (let ((file (match-string 1 thing))
               (line (string-to-number (match-string 2 thing))))
           (find-file file)
-          (goto-line line))
+          (goto-char (point-min))
+          (forward-line (1- line)))
       (ffap))))
 
 (global-set-key (kbd "C-c f") 'ffap-with-line)

@@ -2,7 +2,7 @@
 (setq initial-scratch-message "")
 (setq visible-bell t)
 
-(add-to-list 'load-path (expand-file-name "~/.emacs.d/lisp"))
+(add-to-list 'load-path (expand-file-name "lisp" user-emacs-directory))
 
 ;; Package management
 (require 'package)
@@ -45,9 +45,13 @@
   (load custom-file))
 
 (setq user-full-name
-      (string-trim (shell-command-to-string "git config --global user.name")))
+      (with-temp-buffer
+        (call-process "git" nil t nil "config" "--global" "user.name")
+        (string-trim (buffer-string))))
 (setq user-mail-address
-      (string-trim (shell-command-to-string "git config --global user.email")))
+      (with-temp-buffer
+        (call-process "git" nil t nil "config" "--global" "user.email")
+        (string-trim (buffer-string))))
 
 (defalias 'list-buffers 'ibuffer)
 (put 'upcase-region 'disabled nil)

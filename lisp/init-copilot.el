@@ -5,7 +5,7 @@
     (require 'copilot)
     (defun my-copilot-setup ()
       (setq copilot-idle-delay nil)
-      (local-set-key (kbd "C-c a") 'copilot-accept-completion)
+      (local-set-key (kbd "TAB") 'copilot-accept-completion)
       (local-set-key (kbd "C-c C-e") 'copilot-complete))
     (add-hook 'copilot-mode-hook 'my-copilot-setup)))
 
