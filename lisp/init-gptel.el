@@ -1,3 +1,4 @@
+;;; init-gptel.el --- GPTel configuration -*- lexical-binding: t -*-
 (use-package gptel
   :defer t
   :config

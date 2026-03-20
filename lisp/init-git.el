@@ -1,3 +1,4 @@
+;;; init-git.el --- Git configuration -*- lexical-binding: t -*-
 (use-package diff-hl
   :config (global-diff-hl-mode))
 

@@ -1,3 +1,4 @@
+;;; init.el --- Main init -*- lexical-binding: t -*-
 (setq inhibit-startup-screen t)
 (setq initial-scratch-message "")
 (setq visible-bell t)
@@ -159,3 +160,9 @@
 ;; External
 (let ((f (expand-file-name "~/src/carp/lisp/agent.el")))
   (when (file-exists-p f) (load-file f)))
+
+(add-hook 'emacs-startup-hook
+          (lambda ()
+            (message "Emacs ready in %.2f seconds with %d garbage collections."
+                     (float-time (time-subtract after-init-time before-init-time))
+                     gcs-done)))

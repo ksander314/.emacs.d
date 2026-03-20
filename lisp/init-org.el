@@ -1,3 +1,4 @@
+;;; init-org.el --- Org-mode configuration -*- lexical-binding: t -*-
 (use-package gnuplot :defer t)
 
 (with-eval-after-load 'org
@@ -36,7 +37,7 @@
   (setq org-capture-templates
         '(("d" "Daily Work Log"
            entry (file (lambda ()
-                         (format "~/org/%d.org"
+                         (format "~/src/org/%d.org"
                                  (string-to-number (format-time-string "%V")))))
            "\n* %(format-time-string \"%Y-%m-%d\") [/]
 :PROPERTIES:

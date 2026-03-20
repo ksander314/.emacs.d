@@ -1,3 +1,4 @@
+;;; init-copilot.el --- Copilot configuration -*- lexical-binding: t -*-
 ;; https://github.com/copilot-emacs/copilot.el
 (let ((copilot-dir (expand-file-name "~/src/copilot.el")))
   (when (file-exists-p copilot-dir)

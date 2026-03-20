@@ -1,3 +1,4 @@
+;;; init-haskell.el --- Haskell configuration -*- lexical-binding: t -*-
 (use-package haskell-mode
   :mode "\\.ghci\\'"
   :hook ((haskell-mode . turn-on-haskell-doc-mode)
@@ -21,9 +22,6 @@
 (use-package ghci-completion
   :hook (inferior-haskell-mode . turn-on-ghci-completion))
 
-(use-package flymake-haskell-multi
-  :hook (haskell-mode . flymake-haskell-multi-load))
-
 (with-eval-after-load 'compile
   (let ((alias 'ghc-at-regexp))
     (add-to-list
@@ -32,11 +30,13 @@
     (add-to-list
      'compilation-error-regexp-alist alias)))
 
-(add-hook 'haskell-mode-hook
-          (lambda ()
-            (setq-local whitespace-line-column 80)
-            (setq-local whitespace-style '(face lines-tail))
-            (whitespace-mode 1)))
+(defun my/haskell-setup ()
+  (eglot-ensure)
+  (setq-local whitespace-line-column 80)
+  (setq-local whitespace-style '(face lines-tail))
+  (whitespace-mode 1))
+
+(add-hook 'haskell-mode-hook #'my/haskell-setup)
 
 (with-eval-after-load 'haskell-cabal
   (define-key haskell-cabal-mode-map (kbd "C-c C-c") 'haskell-compile))

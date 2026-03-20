@@ -1,3 +1,4 @@
+;;; init-utils.el --- Utility functions -*- lexical-binding: t -*-
 (defun my/delete-this-file ()
   "Delete the current file, and kill the buffer."
   (interactive)

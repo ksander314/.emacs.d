@@ -1,3 +1,4 @@
+;;; init-c++.el --- C++ configuration -*- lexical-binding: t -*-
 (setq-default c-basic-offset 4)
 
 (defun my/c++-setup ()

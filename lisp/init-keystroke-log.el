@@ -1,4 +1,5 @@
-;; Keystroke analytics: frequencies, bigram timing, typo detection
+;;; init-keystroke-log.el --- Keystroke analytics -*- lexical-binding: t -*-
+;; Frequencies, bigram timing, typo detection
 
 (defvar my/klog-file (expand-file-name "keystroke-log.csv" user-emacs-directory))
 (defvar my/klog-last-char nil)

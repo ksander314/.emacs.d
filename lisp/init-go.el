@@ -1,3 +1,4 @@
+;;; init-go.el --- Go configuration -*- lexical-binding: t -*-
 (use-package go-mode :defer t)
 (use-package gotest :defer t)
 

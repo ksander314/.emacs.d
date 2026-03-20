@@ -1,3 +1,4 @@
+;;; init-rust.el --- Rust configuration -*- lexical-binding: t -*-
 (use-package rust-mode
   :defer t
   :config (setq rust-format-on-save t))

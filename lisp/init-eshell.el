@@ -1,3 +1,4 @@
+;;; init-eshell.el --- Eshell configuration -*- lexical-binding: t -*-
 (use-package eshell-syntax-highlighting
   :hook (eshell-mode . eshell-syntax-highlighting-global-mode))
 

@@ -1,3 +1,4 @@
+;;; init-agent-shell.el --- Agent-shell configuration -*- lexical-binding: t -*-
 (use-package system-packages :demand t)
 
 (use-package agent-shell
