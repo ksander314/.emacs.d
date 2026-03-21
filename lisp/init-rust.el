@@ -1,13 +1,13 @@
 ;;; init-rust.el --- Rust configuration -*- lexical-binding: t -*-
 (use-package rust-mode
-  :defer t
+  :ensure t :defer t
   :config (setq rust-format-on-save t))
 
-(use-package cargo :defer t)
-(use-package toml-mode :defer t)
+(use-package cargo :ensure t :defer t)
+(use-package toml-mode :ensure t :defer t)
 
 (defun my/rust-setup ()
-  (eglot-ensure)
+  (ignore-errors (eglot-ensure))
   (eglot-inlay-hints-mode)
   (cargo-minor-mode 1)
   (hl-line-mode 1)
@@ -20,5 +20,11 @@
 
 (dolist (hook '(rust-mode-hook rust-ts-mode-hook))
   (add-hook hook #'my/rust-setup))
+
+(with-eval-after-load 'eglot
+  (add-hook 'eglot-managed-mode-hook
+            (lambda ()
+              (when (derived-mode-p 'rust-ts-mode 'rust-mode)
+                (font-lock-ensure)))))
 
 (provide 'init-rust)

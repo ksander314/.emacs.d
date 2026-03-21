@@ -1,6 +1,7 @@
 ;;; init-display.el --- Display configuration -*- lexical-binding: t -*-
 (setq display-line-numbers-type 'relative)
 (global-display-line-numbers-mode 1)
+(add-hook 'prog-mode-hook #'display-line-numbers-mode)
 
 (setq-default show-trailing-whitespace t)
 (column-number-mode t)

@@ -1,8 +1,8 @@
 ;;; init-erl.el --- Erlang configuration -*- lexical-binding: t -*-
-(use-package erlang :defer t)
+(use-package erlang :ensure t :defer t)
 
 (defun my/erl-setup ()
-  (eglot-ensure)
+  (ignore-errors (eglot-ensure))
   (subword-mode)
   (hl-line-mode)
   (setq-local whitespace-line-column 100)
@@ -10,5 +10,11 @@
   (whitespace-mode 1))
 
 (add-hook 'erlang-mode-hook #'my/erl-setup)
+
+(with-eval-after-load 'eglot
+  (add-hook 'eglot-managed-mode-hook
+            (lambda ()
+              (when (derived-mode-p 'erlang-mode)
+                (font-lock-ensure)))))
 
 (provide 'init-erl)

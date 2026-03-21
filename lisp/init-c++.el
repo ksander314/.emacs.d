@@ -2,7 +2,7 @@
 (setq-default c-basic-offset 4)
 
 (defun my/c++-setup ()
-  (eglot-ensure)
+  (ignore-errors (eglot-ensure))
   (c-set-offset 'substatement-open 0)
   (c-set-offset 'innamespace 0)
   (c-set-offset 'inline-open 0)
@@ -21,5 +21,11 @@
 
 (add-hook 'c-mode-hook 'hs-minor-mode)
 (add-hook 'c-ts-mode-hook 'hs-minor-mode)
+
+(with-eval-after-load 'eglot
+  (add-hook 'eglot-managed-mode-hook
+            (lambda ()
+              (when (derived-mode-p 'c++-ts-mode 'c++-mode 'c-ts-mode 'c-mode)
+                (font-lock-ensure)))))
 
 (provide 'init-c++)

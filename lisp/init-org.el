@@ -1,5 +1,5 @@
 ;;; init-org.el --- Org-mode configuration -*- lexical-binding: t -*-
-(use-package gnuplot :defer t)
+(use-package gnuplot :ensure t :defer t)
 
 (with-eval-after-load 'org
   (org-babel-do-load-languages

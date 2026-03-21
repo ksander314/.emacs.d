@@ -1,6 +1,6 @@
 ;;; init-gptel.el --- GPTel configuration -*- lexical-binding: t -*-
 (use-package gptel
-  :defer t
+  :ensure t :defer t
   :config
   (gptel-make-gemini "Gemini"
     :key (lambda ()

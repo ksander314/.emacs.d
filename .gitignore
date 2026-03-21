@@ -28,3 +28,6 @@ tree-sitter/
 /history
 /keystroke-log.csv
 /projects
+.emacs.d
+eln-cache/
+straight/

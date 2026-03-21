@@ -9,8 +9,12 @@
 (require 'package)
 (add-to-list 'package-archives '("melpa" . "https://melpa.org/packages/") t)
 (package-initialize)
-(unless package-archive-contents
-  (package-refresh-contents))
+(let ((archive (expand-file-name "archives/melpa/archive-contents" package-user-dir)))
+  (when (or (not (file-exists-p archive))
+            (time-less-p (days-to-time 1)
+                         (time-since (file-attribute-modification-time
+                                      (file-attributes archive)))))
+    (package-refresh-contents)))
 (setq use-package-always-ensure t)
 
 ;; Auth
@@ -34,6 +38,8 @@
 (require 'init-keystroke-log)
 
 (desktop-save-mode t)
+(with-eval-after-load 'eglot
+  (add-to-list 'desktop-minor-mode-table '(eglot--managed-mode nil)))
 
 (require 'server)
 (unless (server-running-p)
@@ -97,9 +103,14 @@
 (setq treesit-font-lock-level 4)
 (use-package treesit-auto
   :config
-  (setq treesit-auto-install 'prompt)
+  (setq treesit-auto-install t)
   (treesit-auto-add-to-auto-mode-alist 'all)
-  (global-treesit-auto-mode))
+  (global-treesit-auto-mode)
+  (run-with-idle-timer 2 nil
+    (lambda ()
+      (dolist (lang '(go gomod c cpp rust python yaml toml json bash))
+        (unless (treesit-language-available-p lang)
+          (treesit-install-language-grammar lang))))))
 
 ;; Flymake (built-in)
 (global-set-key (kbd "C-c e") 'flymake-goto-next-error)
@@ -166,3 +177,18 @@
             (message "Emacs ready in %.2f seconds with %d garbage collections."
                      (float-time (time-subtract after-init-time before-init-time))
                      gcs-done)))
+(custom-set-variables
+ ;; custom-set-variables was added by Custom.
+ ;; If you edit it by hand, you could mess it up, so be careful.
+ ;; Your init file should contain only one such instance.
+ ;; If there is more than one, they won't work right.
+ '(package-vc-selected-packages
+   '((agent-shell-knockknock :url
+			     "https://github.com/xenodium/agent-shell-knockknock")
+     (knockknock :url "https://github.com/xenodium/knockknock"))))
+(custom-set-faces
+ ;; custom-set-faces was added by Custom.
+ ;; If you edit it by hand, you could mess it up, so be careful.
+ ;; Your init file should contain only one such instance.
+ ;; If there is more than one, they won't work right.
+ )

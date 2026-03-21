@@ -1,5 +1,6 @@
 ;;; init-haskell.el --- Haskell configuration -*- lexical-binding: t -*-
 (use-package haskell-mode
+  :ensure t
   :mode "\\.ghci\\'"
   :hook ((haskell-mode . turn-on-haskell-doc-mode)
          (haskell-mode . turn-on-haskell-indent)
@@ -20,6 +21,7 @@
   (haskell-process-path-cabal "~/.cabal/bin/cabal"))
 
 (use-package ghci-completion
+  :ensure t
   :hook (inferior-haskell-mode . turn-on-ghci-completion))
 
 (with-eval-after-load 'compile
@@ -31,12 +33,18 @@
      'compilation-error-regexp-alist alias)))
 
 (defun my/haskell-setup ()
-  (eglot-ensure)
+  (ignore-errors (eglot-ensure))
   (setq-local whitespace-line-column 80)
   (setq-local whitespace-style '(face lines-tail))
   (whitespace-mode 1))
 
 (add-hook 'haskell-mode-hook #'my/haskell-setup)
+
+(with-eval-after-load 'eglot
+  (add-hook 'eglot-managed-mode-hook
+            (lambda ()
+              (when (derived-mode-p 'haskell-mode)
+                (font-lock-ensure)))))
 
 (with-eval-after-load 'haskell-cabal
   (define-key haskell-cabal-mode-map (kbd "C-c C-c") 'haskell-compile))

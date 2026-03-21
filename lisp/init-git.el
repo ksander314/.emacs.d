@@ -1,17 +1,23 @@
 ;;; init-git.el --- Git configuration -*- lexical-binding: t -*-
 (use-package diff-hl
+  :ensure t
   :config (global-diff-hl-mode))
 
 (use-package magit
+  :ensure t
   :bind ("C-c g g" . magit-status))
 
 (use-package git-messenger
+  :ensure t
   :bind (("C-c g p" . git-messenger:popup-message)
          :map git-messenger-map
          ("m" . git-messenger:copy-message)))
 
+(use-package markdown-mode :ensure t :defer t)
+
 (use-package gptel-magit
-  :after magit
+  :ensure t
+  :after (magit markdown-mode)
   :config
   (gptel-magit-install)
   (add-hook 'magit-mode-hook

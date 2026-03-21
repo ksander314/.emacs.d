@@ -1,6 +1,6 @@
 ;;; init-go.el --- Go configuration -*- lexical-binding: t -*-
-(use-package go-mode :defer t)
-(use-package gotest :defer t)
+(use-package go-mode :ensure t :defer t)
+(use-package gotest :ensure t :defer t)
 
 (defun my/go-eglot-organize-imports ()
   (when (eglot-managed-p)
@@ -34,7 +34,7 @@
     (call-interactively 'dape)))
 
 (defun my/go-setup ()
-  (eglot-ensure)
+  (ignore-errors (eglot-ensure))
   (eglot-inlay-hints-mode)
   (which-function-mode)
   (subword-mode)
@@ -54,5 +54,11 @@
 
 (dolist (hook '(go-mode-hook go-ts-mode-hook))
   (add-hook hook #'my/go-setup))
+
+(with-eval-after-load 'eglot
+  (add-hook 'eglot-managed-mode-hook
+            (lambda ()
+              (when (derived-mode-p 'go-ts-mode 'go-mode)
+                (font-lock-ensure)))))
 
 (provide 'init-go)

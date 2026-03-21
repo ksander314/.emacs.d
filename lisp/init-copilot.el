@@ -2,6 +2,9 @@
 ;; https://github.com/copilot-emacs/copilot.el
 (let ((copilot-dir (expand-file-name "~/src/copilot.el")))
   (when (file-exists-p copilot-dir)
+    (dolist (dep '(f editorconfig track-changes))
+      (unless (package-installed-p dep)
+        (package-install dep)))
     (add-to-list 'load-path copilot-dir)
     (require 'copilot)
     (defun my/copilot-setup ()
