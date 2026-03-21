@@ -7,8 +7,9 @@
 (use-package toml-mode :ensure t :defer t)
 
 (defun my/rust-setup ()
-  (ignore-errors (eglot-ensure))
-  (eglot-inlay-hints-mode)
+  (condition-case err (eglot-ensure)
+    (error (message "eglot-ensure failed in rust: %s" err)))
+  (ignore-errors (eglot-inlay-hints-mode))
   (cargo-minor-mode 1)
   (hl-line-mode 1)
   (subword-mode 1)
@@ -20,11 +21,5 @@
 
 (dolist (hook '(rust-mode-hook rust-ts-mode-hook))
   (add-hook hook #'my/rust-setup))
-
-(with-eval-after-load 'eglot
-  (add-hook 'eglot-managed-mode-hook
-            (lambda ()
-              (when (derived-mode-p 'rust-ts-mode 'rust-mode)
-                (font-lock-ensure)))))
 
 (provide 'init-rust)

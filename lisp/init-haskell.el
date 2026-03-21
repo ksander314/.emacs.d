@@ -33,18 +33,13 @@
      'compilation-error-regexp-alist alias)))
 
 (defun my/haskell-setup ()
-  (ignore-errors (eglot-ensure))
+  (condition-case err (eglot-ensure)
+    (error (message "eglot-ensure failed in haskell: %s" err)))
   (setq-local whitespace-line-column 80)
   (setq-local whitespace-style '(face lines-tail))
   (whitespace-mode 1))
 
 (add-hook 'haskell-mode-hook #'my/haskell-setup)
-
-(with-eval-after-load 'eglot
-  (add-hook 'eglot-managed-mode-hook
-            (lambda ()
-              (when (derived-mode-p 'haskell-mode)
-                (font-lock-ensure)))))
 
 (with-eval-after-load 'haskell-cabal
   (define-key haskell-cabal-mode-map (kbd "C-c C-c") 'haskell-compile))

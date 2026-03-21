@@ -103,12 +103,12 @@
 (setq treesit-font-lock-level 4)
 (use-package treesit-auto
   :config
-  (setq treesit-auto-install t)
+  (setq treesit-auto-install nil)
   (treesit-auto-add-to-auto-mode-alist 'all)
   (global-treesit-auto-mode)
   (run-with-idle-timer 2 nil
     (lambda ()
-      (dolist (lang '(go gomod c cpp rust python yaml toml json bash))
+      (dolist (lang '(go c cpp rust python yaml toml json bash))
         (unless (treesit-language-available-p lang)
           (treesit-install-language-grammar lang))))))
 
@@ -130,6 +130,10 @@
         eglot-server-programs))
 
 (setq eglot-events-buffer-config '(:size 0))
+
+;; Force font-lock refresh after eglot connects (fixes missing syntax highlight)
+(with-eval-after-load 'eglot
+  (add-hook 'eglot-managed-mode-hook #'font-lock-ensure))
 
 (setq-default eglot-workspace-configuration
               '(:gopls (:staticcheck t)

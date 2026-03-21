@@ -1,10 +1,10 @@
 ;;; init-agent-shell.el --- Agent-shell configuration -*- lexical-binding: t -*-
-(unless (executable-find "claude-agent-acp")
-  (message "claude-agent-acp not found; run: npm install -g @zed-industries/claude-agent-acp"))
-
 (use-package agent-shell
   :ensure t
-  :bind ("C-c a" . agent-shell))
+  :bind ("C-c a" . agent-shell)
+  :config
+  (unless (executable-find "claude-agent-acp")
+    (message "claude-agent-acp not found; run: npm install -g @zed-industries/claude-agent-acp")))
 
 (use-package nerd-icons :ensure t)
 

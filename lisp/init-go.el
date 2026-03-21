@@ -34,8 +34,9 @@
     (call-interactively 'dape)))
 
 (defun my/go-setup ()
-  (ignore-errors (eglot-ensure))
-  (eglot-inlay-hints-mode)
+  (condition-case err (eglot-ensure)
+    (error (message "eglot-ensure failed in go: %s" err)))
+  (ignore-errors (eglot-inlay-hints-mode))
   (which-function-mode)
   (subword-mode)
   (hl-line-mode)
@@ -54,11 +55,5 @@
 
 (dolist (hook '(go-mode-hook go-ts-mode-hook))
   (add-hook hook #'my/go-setup))
-
-(with-eval-after-load 'eglot
-  (add-hook 'eglot-managed-mode-hook
-            (lambda ()
-              (when (derived-mode-p 'go-ts-mode 'go-mode)
-                (font-lock-ensure)))))
 
 (provide 'init-go)

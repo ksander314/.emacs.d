@@ -17,7 +17,7 @@
 
 (use-package gptel-magit
   :ensure t
-  :after (magit markdown-mode)
+  :after magit
   :config
   (gptel-magit-install)
   (add-hook 'magit-mode-hook
