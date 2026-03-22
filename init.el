@@ -45,6 +45,7 @@
 (global-set-key (kbd "C-c t") #'my/org-quick-task)
 (global-set-key (kbd "C-c u") #'my/org-urgent-task)
 (global-set-key (kbd "C-c s") #'my/org-standup)
+(global-set-key (kbd "C-c m") #'my/org-meeting)
 
 ;; Org keybindings — org-mode only (need cursor on a heading)
 (with-eval-after-load 'org
@@ -52,7 +53,8 @@
   (define-key org-mode-map (kbd "C-c d") #'my/org-done)
   (define-key org-mode-map (kbd "C-c i") #'my/org-start)
   (define-key org-mode-map (kbd "C-c p") #'my/org-pause)
-  (define-key org-mode-map (kbd "C-c l") #'my/org-link-task))
+  (define-key org-mode-map (kbd "C-c l") #'my/org-link-task)
+  (define-key org-mode-map (kbd "C-c A") #'my/org-archive-done))
 
 (desktop-save-mode t)
 (with-eval-after-load 'eglot

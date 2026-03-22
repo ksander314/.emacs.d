@@ -40,6 +40,21 @@
           ("j" "JIRA Task" entry (file "~/src/org/inbox.org")
            "* TODO %^{JIRA Key} %?\n:PROPERTIES:\n:JIRA: %\\1\n:END:\n")))
 
+  (setq org-agenda-custom-commands
+        '(("d" "Dashboard"
+           ((agenda "" ((org-agenda-span 'day)))
+            (todo "INPROCESS"
+                  ((org-agenda-overriding-header "В работе")))
+            (tags-todo "+TODO=\"TODO\""
+                       ((org-agenda-files '("~/src/org/work.org"))
+                        (org-agenda-overriding-header "Задачи в work.org")))))
+          ("u" "Unplanned" tags "+unplanned"
+           ((org-agenda-overriding-header "Незапланированные задачи")))
+          ("i" "In Progress" todo "INPROCESS"
+           ((org-agenda-overriding-header "Сейчас в работе")))))
+
+  (setq org-archive-location "~/src/org/work.org_archive::datetree/")
+
   (add-hook 'org-after-todo-state-change-hook #'my/org-auto-clock-on-state-change))
 
 (defun my/org-auto-clock-on-state-change ()
@@ -124,6 +139,34 @@ Optionally start working on it immediately."
         (switch-to-buffer (marker-buffer heading-pos))
         (goto-char heading-pos)
         (org-todo "INPROCESS")))))
+
+;;; Meeting notes — quick start, write during the call
+
+(defun my/org-meeting ()
+  "Start a meeting: create heading under today in work.org, clock in, take notes."
+  (interactive)
+  (let ((topic (read-string "Meeting topic: ")))
+    (when (string-empty-p (string-trim topic))
+      (user-error "Empty topic"))
+    (let ((marker (my/org-ensure-daily-heading))
+          heading-pos)
+      (with-current-buffer (marker-buffer marker)
+        (org-with-wide-buffer
+         (goto-char (marker-position marker))
+         (org-end-of-subtree t)
+         (unless (bolp) (insert "\n"))
+         (setq heading-pos (point-marker))
+         (insert (format "** INPROCESS %s :meeting:\n" topic))
+         (insert ":PROPERTIES:\n")
+         (insert (format ":MeetingTime: %s\n" (format-time-string "%H:%M")))
+         (insert ":END:\n"))
+        (save-buffer))
+      (switch-to-buffer (marker-buffer heading-pos))
+      (goto-char heading-pos)
+      (org-end-of-meta-data t)
+      (open-line 1)
+      (org-clock-in)
+      (message "Meeting started: %s — C-c d to finish" topic))))
 
 ;;; Quick task capture (no template selection)
 
@@ -348,5 +391,24 @@ Optionally start working on it immediately."
             (insert item "\n")))
         (goto-char (point-min))
         (display-buffer (current-buffer))))))
+
+;;; Archive done tasks
+
+(defun my/org-archive-done ()
+  "Archive all DONE/CANCELED entries under the current level-1 date heading."
+  (interactive)
+  (org-back-to-heading t)
+  (unless (= (org-current-level) 1)
+    (user-error "Курсор должен быть на дневном заголовке (level 1)"))
+  (let ((count 0)
+        (start (point)))
+    (while (let ((end (save-excursion (org-end-of-subtree t) (point))))
+             (goto-char start)
+             (re-search-forward "^\\*\\* \\(DONE\\|CANCELED\\) " end t))
+      (beginning-of-line)
+      (org-archive-subtree)
+      (setq count (1+ count))
+      (goto-char start))
+    (message "Archived %d entries." count)))
 
 (provide 'init-org)
