@@ -15,7 +15,10 @@
   "File to log interruptions.")
 
 (defvar my/focus-shield--frozen-state nil
-  "Plist storing frozen context: :window-config :buffer :point :clock-marker :freeze-time :note.")
+  "Plist storing frozen context: :window-config :buffer :point :clock-marker :freeze-time :note :duration-marker.")
+
+(defvar my/focus-shield--duration-marker nil
+  "Marker pointing to the Duration property line of the current interruption entry.")
 
 (defun my/focus-freeze ()
   "Freeze current context — save window layout, position, pause org-clock.
@@ -110,24 +113,29 @@ Use when interrupted.  Restore with `my/focus-thaw'."
        (insert (format ":FrozenLine:   %d\n" line-num))
        (when task-name
          (insert (format ":FrozenTask:   %s\n" task-name)))
-       (insert ":Duration:     \n")
+       (insert ":Duration:     ")
+       (setq my/focus-shield--duration-marker (point-marker))
+       (insert "\n")
        (insert ":END:\n")
        (insert note "\n"))
       (save-buffer))))
 
 (defun my/focus-shield--write-duration ()
-  "Write the interruption duration into the last log entry."
-  (when my/focus-shield--frozen-state
+  "Write the interruption duration into the current log entry via saved marker."
+  (when (and my/focus-shield--frozen-state
+             my/focus-shield--duration-marker
+             (marker-buffer my/focus-shield--duration-marker))
     (let* ((freeze-time (plist-get my/focus-shield--frozen-state :freeze-time))
            (elapsed (time-subtract (current-time) freeze-time))
            (minutes (truncate (/ (float-time elapsed) 60)))
-           (duration-str (format "%d:%02d" (/ minutes 60) (% minutes 60))))
-      (with-current-buffer (find-file-noselect my/focus-shield-file)
+           (duration-str (my/minutes-to-hh:mm minutes)))
+      (with-current-buffer (marker-buffer my/focus-shield--duration-marker)
         (org-with-wide-buffer
-         (goto-char (point-max))
-         (when (re-search-backward "^:Duration:[ \t]*$" nil t)
-           (replace-match (format ":Duration:     %s" duration-str))))
-        (save-buffer)))))
+         (goto-char my/focus-shield--duration-marker)
+         (when (looking-at "[ \t]*$")
+           (replace-match duration-str)))
+        (save-buffer))
+      (set-marker my/focus-shield--duration-marker nil))))
 
 (defun my/focus-report ()
   "Show interruption statistics."
@@ -177,8 +185,8 @@ Use when interrupted.  Restore with `my/focus-thaw'."
                (avg (if (> count 0) (/ mins count) 0)))
           (insert (format "%-20s %5d %10s %10s\n"
                           label count
-                          (format "%d:%02d" (/ mins 60) (% mins 60))
-                          (format "%d:%02d" (/ avg 60) (% avg 60))))))
+                          (my/minutes-to-hh:mm mins)
+                          (my/minutes-to-hh:mm avg)))))
       (goto-char (point-min))
       (display-buffer (current-buffer)))))
 

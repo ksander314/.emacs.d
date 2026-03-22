@@ -110,7 +110,7 @@ Optionally start working on it immediately."
          (start-now (y-or-n-p "Start now? ")))
     (when (string-empty-p (string-trim task))
       (user-error "Empty task"))
-    (let ((marker (my/org-daily-heading))
+    (let ((marker (my/org-ensure-daily-heading))
           heading-pos)
       (with-current-buffer (marker-buffer marker)
         (org-with-wide-buffer
@@ -118,14 +118,12 @@ Optionally start working on it immediately."
          (org-end-of-subtree t)
          (unless (bolp) (insert "\n"))
          (setq heading-pos (point-marker))
-         (insert (format "** %s %s :unplanned:\n"
-                         (if start-now "INPROCESS" "TODO")
-                         task)))
+         (insert (format "** TODO %s :unplanned:\n" task)))
         (save-buffer))
       (when start-now
         (switch-to-buffer (marker-buffer heading-pos))
         (goto-char heading-pos)
-        (org-clock-in)))))
+        (org-todo "INPROCESS")))))
 
 ;;; Quick task capture (no template selection)
 
@@ -144,25 +142,35 @@ Optionally start working on it immediately."
 
 ;;; Daily heading in work.org
 
+(defun my/org-find-date-heading (date-str file)
+  "Find heading for DATE-STR in FILE.  Return marker or nil."
+  (with-current-buffer (find-file-noselect file)
+    (org-with-wide-buffer
+     (goto-char (point-min))
+     (when (re-search-forward (format "^\\* %s$" (regexp-quote date-str)) nil t)
+       (point-marker)))))
+
 (defun my/org-daily-heading ()
+  "Find today's heading in work.org.  Return marker or nil."
+  (my/org-find-date-heading (format-time-string "%Y-%m-%d")
+                            (expand-file-name "~/src/org/work.org")))
+
+(defun my/org-ensure-daily-heading ()
   "Find or create today's heading in work.org.  Return the marker."
-  (let ((date-str (format-time-string "%Y-%m-%d"))
-        (work-file (expand-file-name "~/src/org/work.org")))
-    (with-current-buffer (find-file-noselect work-file)
-      (org-with-wide-buffer
-       (goto-char (point-min))
-       (if (re-search-forward (format "^\\* %s$" (regexp-quote date-str)) nil t)
-           (point-marker)
-         (goto-char (point-max))
-         (unless (bolp) (insert "\n"))
-         (insert (format "* %s\n" date-str))
-         (save-buffer)
-         (point-marker))))))
+  (or (my/org-daily-heading)
+      (let ((work-file (expand-file-name "~/src/org/work.org")))
+        (with-current-buffer (find-file-noselect work-file)
+          (org-with-wide-buffer
+           (goto-char (point-max))
+           (unless (bolp) (insert "\n"))
+           (insert (format "* %s\n" (format-time-string "%Y-%m-%d")))
+           (save-buffer)
+           (point-marker))))))
 
 (defun my/org-refile-to-today ()
   "Refile current entry to today's heading in work.org."
   (interactive)
-  (let ((marker (my/org-daily-heading)))
+  (let ((marker (my/org-ensure-daily-heading)))
     (org-refile nil nil
                (list nil
                      (buffer-file-name (marker-buffer marker))
@@ -200,12 +208,13 @@ Optionally start working on it immediately."
          (let ((end (save-excursion (org-end-of-subtree t) (point))))
            (while (re-search-forward "^\\*\\* " end t)
              (let* ((heading (org-get-heading t t t t))
+                    (todo-state (org-get-todo-state))
                     (clocked (org-clock-sum-current-item))
                     (jira (org-entry-get (point) "JIRA"))
                     (unplanned (member "unplanned" (org-get-tags))))
-               (when (> clocked 0)
+               (when (and todo-state (> clocked 0))
                  (push (format "- [%s] %s%s%s"
-                               (my/org-minutes-to-hh:mm clocked)
+                               (my/minutes-to-hh:mm clocked)
                                heading
                                (if jira (format " (%s)" jira) "")
                                (if unplanned " [unplanned]" ""))
@@ -235,14 +244,25 @@ Optionally start working on it immediately."
                       (mapconcat #'identity (nreverse today-tasks) "\n")
                     "- (нет задач)")))
     ;; Save to work.org under today's heading
-    (let ((marker (my/org-daily-heading)))
+    (let ((marker (my/org-ensure-daily-heading)))
       (with-current-buffer (marker-buffer marker)
         (org-with-wide-buffer
          (goto-char (marker-position marker))
-         (org-end-of-subtree t)
-         (unless (bolp) (insert "\n"))
-         (insert (format "** Standup %s\n" (format-time-string "%H:%M")))
-         (insert report "\n"))
+         (let ((end (save-excursion (org-end-of-subtree t) (point)))
+               (existing nil))
+           (when (re-search-forward "^\\*\\* Standup " end t)
+             (setq existing t)
+             (unless (y-or-n-p "Standup уже есть. Перезаписать? ")
+               (user-error "Отменено")))
+           (if existing
+               (progn
+                 (beginning-of-line)
+                 (let ((sub-end (save-excursion (org-end-of-subtree t) (point))))
+                   (delete-region (point) sub-end)))
+             (goto-char end)
+             (unless (bolp) (insert "\n")))
+           (insert (format "** Standup %s\n" (format-time-string "%H:%M")))
+           (insert report "\n")))
         (save-buffer)))
     (kill-new report)
     (with-current-buffer (get-buffer-create "*Standup*")
@@ -253,10 +273,6 @@ Optionally start working on it immediately."
     (message "Standup сохранён в work.org и скопирован в kill-ring.")))
 
 ;;; Workday stats (kept for later use)
-
-(defun my/org-minutes-to-hh:mm (minutes)
-  "Convert minutes to HH:MM format."
-  (format "%d:%02d" (/ minutes 60) (% minutes 60)))
 
 (defun my/org-calculate-totals-for-day ()
   "Calculate total effort and clocked time for the current Org heading."
@@ -272,11 +288,11 @@ Optionally start working on it immediately."
                (setq total-effort (+ total-effort (truncate effort-minutes)))))))
        nil 'tree)
       (org-back-to-heading t)
-      (org-set-property "TotalEffort" (my/org-minutes-to-hh:mm (truncate total-effort)))
-      (org-set-property "TotalClocked" (my/org-minutes-to-hh:mm (truncate total-clocked)))
+      (org-set-property "TotalEffort" (my/minutes-to-hh:mm (truncate total-effort)))
+      (org-set-property "TotalClocked" (my/minutes-to-hh:mm (truncate total-clocked)))
       (message "Totals updated: Effort=%s, Clocked=%s"
-               (my/org-minutes-to-hh:mm (truncate total-effort))
-               (my/org-minutes-to-hh:mm (truncate total-clocked))))))
+               (my/minutes-to-hh:mm (truncate total-effort))
+               (my/minutes-to-hh:mm (truncate total-clocked))))))
 
 ;;; Unplanned work report
 
@@ -292,7 +308,8 @@ Optionally start working on it immediately."
       (org-with-wide-buffer
        (goto-char (point-min))
        (while (re-search-forward "^\\*\\* " nil t)
-         (let* ((heading (org-get-heading t t t t))
+         (let* ((todo-state (org-get-todo-state))
+                (heading (org-get-heading t t t t))
                 (clocked (org-clock-sum-current-item))
                 (tags (org-get-tags))
                 (parent-date
@@ -301,7 +318,8 @@ Optionally start working on it immediately."
                    (org-get-heading t t t t)))
                 (cutoff (format-time-string "%Y-%m-%d"
                           (time-subtract (current-time) (days-to-time days)))))
-           (when (and parent-date
+           (when (and todo-state
+                      parent-date
                       (string-match "^[0-9]\\{4\\}-[0-9]\\{2\\}-[0-9]\\{2\\}$" parent-date)
                       (string<= cutoff parent-date)
                       (> clocked 0))
@@ -310,7 +328,7 @@ Optionally start working on it immediately."
                    (setq unplanned-minutes (+ unplanned-minutes clocked))
                    (push (format "  %s [%s] %s"
                                  parent-date
-                                 (my/org-minutes-to-hh:mm clocked)
+                                 (my/minutes-to-hh:mm clocked)
                                  heading)
                          unplanned-items))
                (setq planned-minutes (+ planned-minutes clocked))))))))
@@ -321,9 +339,9 @@ Optionally start working on it immediately."
       (with-current-buffer (get-buffer-create "*Unplanned Work Report*")
         (erase-buffer)
         (insert (format "=== Unplanned Work Report (last %d days) ===\n\n" days))
-        (insert (format "Planned:   %s\n" (my/org-minutes-to-hh:mm planned-minutes)))
-        (insert (format "Unplanned: %s (%d%%)\n" (my/org-minutes-to-hh:mm unplanned-minutes) pct))
-        (insert (format "Total:     %s\n" (my/org-minutes-to-hh:mm total)))
+        (insert (format "Planned:   %s\n" (my/minutes-to-hh:mm planned-minutes)))
+        (insert (format "Unplanned: %s (%d%%)\n" (my/minutes-to-hh:mm unplanned-minutes) pct))
+        (insert (format "Total:     %s\n" (my/minutes-to-hh:mm total)))
         (when unplanned-items
           (insert "\nUnplanned items:\n")
           (dolist (item (nreverse unplanned-items))

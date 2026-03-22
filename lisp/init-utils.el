@@ -42,4 +42,8 @@
 
 (global-set-key (kbd "C-c f") 'my/ffap-with-line)
 
+(defun my/minutes-to-hh:mm (minutes)
+  "Convert MINUTES to HH:MM format string."
+  (format "%d:%02d" (/ minutes 60) (% minutes 60)))
+
 (provide 'init-utils)
