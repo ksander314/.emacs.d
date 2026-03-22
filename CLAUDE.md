@@ -14,23 +14,31 @@ To test a change without restarting Emacs: `M-x eval-buffer` (current file) or `
 
 `init.el` handles global settings and the core package stack, then `require`s each module:
 
-| Module | Purpose |
-|---|---|
-| `init-utils` | File utilities (`my/delete-this-file`, `my/rename-this-file-and-buffer`), `C-c f` opens `file:line` references |
-| `init-go` | Go: eglot + gopls (staticcheck enabled), auto-format/organize-imports on save, `my/go-debug-test` for dape |
-| `init-rust` | Rust: rust-mode + eglot + rust-analyzer (clippy), auto-format on save |
-| `init-haskell` | Haskell: haskell-mode + eglot, cabal build |
-| `init-erl` | Erlang: erlang-mode + eglot |
-| `init-python` | Python: eglot only |
-| `init-c++` | C++: eglot + clangd (`--header-insertion=never`) |
-| `init-org` | Org agenda (custom views: `d`ashboard/`u`nplanned/`i`n-progress), capture, clock automation, meeting notes (`C-c m`), archive (`C-c A`), workday stats, pomodoro (`C-c P`), weekly review (`C-c w`), code review journal (`C-c R`), decision log (`C-c D`), 1-on-1 notes (`C-c 1`), incident log (`C-c !`), timesheet (`C-c T`), energy tracker (`C-c E`), org-modern visuals |
-| `init-git` | magit (`C-c g g`), diff-hl, git-messenger, gptel-magit for AI commit messages |
-| `init-gptel` | gptel with OpenAI + Gemini backends; system prompt tuned for Go backend engineering |
-| `init-agent-shell` | agent-shell (`C-c a`) + knockknock notifications |
-| `init-copilot` | Copilot (loaded only if `~/src/copilot.el` exists); `C-c C-e` to trigger, `C-c a` to accept |
-| `init-display` | Relative line numbers, trailing whitespace highlighting |
-| `init-eshell` | Custom prompt, per-command history append, `C-c C-r` for consult-history |
-| `init-keystroke-log` | Records keystrokes to `keystroke-log.csv`; `my/klog-typo-report`, `my/klog-char-freq-report`, `my/klog-bigram-speed-report` for analysis |
+```
+Module             Purpose
+──────────────────────────────────────────────────────────────────────────────
+init-utils         File utilities (my/delete-this-file, my/rename-this-file-and-buffer), C-c f opens file:line refs
+init-go            Go: eglot + gopls (staticcheck), auto-format/organize-imports on save, my/go-debug-test for dape
+init-rust          Rust: rust-mode + eglot + rust-analyzer (clippy), auto-format on save
+init-haskell       Haskell: haskell-mode + eglot, cabal build
+init-erl           Erlang: erlang-mode + eglot
+init-python        Python: eglot only
+init-c++           C++: eglot + clangd (--header-insertion=never)
+init-org           Org agenda (d=dashboard, u=unplanned, i=in-progress, r=review open items), capture (t=task,
+                   j=jira, p=project), clock automation, project association (my/org-set-project), meeting notes
+                   (C-c m), archive with :Project: prompt (C-c A), pomodoro (C-c P), weekly review (C-c w),
+                   standup, code review journal (C-c R), decision log (C-c D), 1-on-1 notes (C-c 1), incident
+                   log with auto-resolve (C-c !), timesheet (C-c T), energy tracker (C-c E), org-modern visuals
+init-git           magit (C-c g g), diff-hl, git-messenger, gptel-magit for AI commit messages
+init-gptel         gptel with OpenAI + Gemini backends; system prompt tuned for Go backend engineering
+init-agent-shell   agent-shell (C-c a) + knockknock notifications
+init-copilot       Copilot (loaded only if ~/src/copilot.el exists); C-c C-e to trigger, C-c a to accept
+init-display       Relative line numbers, trailing whitespace highlighting
+init-eshell        Custom prompt, per-command history append, C-c C-r for consult-history
+init-keystroke-log Records keystrokes to keystroke-log.csv; my/klog-typo-report, my/klog-char-freq-report,
+                   my/klog-bigram-speed-report for analysis
+init-focus-shield  Distraction blocking during focused work
+```
 
 ## Key conventions
 

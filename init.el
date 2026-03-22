@@ -37,6 +37,7 @@
 (require 'init-agent-shell)
 (require 'init-keystroke-log)
 (require 'init-focus-shield)
+(require 'init-kube)
 (global-set-key (kbd "C-c z") #'my/focus-freeze)
 (global-set-key (kbd "C-c Z") #'my/focus-thaw)
 

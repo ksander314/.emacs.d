@@ -1,0 +1,16 @@
+#!/bin/sh
+# TRAMP helper for kubectl exec with context and namespace.
+# Called by TRAMP with: kube-tramp NAMESPACE.CONTEXT POD [-it] [--] [shell ...]
+# Namespace is the part before the first dot; context is the rest.
+if [ $# -lt 2 ]; then
+    echo "Usage: kube-tramp NAMESPACE.CONTEXT POD [exec args...]" >&2
+    exit 1
+fi
+ns_ctx="$1"; pod="$2"; shift 2
+namespace="${ns_ctx%%.*}"
+context="${ns_ctx#*.}"
+if [ -z "$namespace" ] || [ -z "$context" ] || [ -z "$pod" ]; then
+    echo "Error: could not parse namespace/context from '$ns_ctx'" >&2
+    exit 1
+fi
+exec kubectl --context="$context" -n "$namespace" exec "$pod" "$@"
