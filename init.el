@@ -36,6 +36,23 @@
 (require 'init-copilot)
 (require 'init-agent-shell)
 (require 'init-keystroke-log)
+(require 'init-focus-shield)
+(global-set-key (kbd "C-c z") #'my/focus-freeze)
+(global-set-key (kbd "C-c Z") #'my/focus-thaw)
+
+;; Org keybindings — global (work from anywhere)
+(global-set-key (kbd "C-c a") #'org-agenda)
+(global-set-key (kbd "C-c t") #'my/org-quick-task)
+(global-set-key (kbd "C-c u") #'my/org-urgent-task)
+(global-set-key (kbd "C-c s") #'my/org-standup)
+
+;; Org keybindings — org-mode only (need cursor on a heading)
+(with-eval-after-load 'org
+  (define-key org-mode-map (kbd "C-c r") #'my/org-refile-to-today)
+  (define-key org-mode-map (kbd "C-c d") #'my/org-done)
+  (define-key org-mode-map (kbd "C-c i") #'my/org-start)
+  (define-key org-mode-map (kbd "C-c p") #'my/org-pause)
+  (define-key org-mode-map (kbd "C-c l") #'my/org-link-task))
 
 (desktop-save-mode t)
 (with-eval-after-load 'eglot
@@ -180,7 +197,9 @@
           (lambda ()
             (message "Emacs ready in %.2f seconds with %d garbage collections."
                      (float-time (time-subtract after-init-time before-init-time))
-                     gcs-done)))
+                     gcs-done)
+            (when (display-graphic-p)
+              (run-with-idle-timer 1 nil #'org-agenda-list))))
 (custom-set-variables
  ;; custom-set-variables was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
