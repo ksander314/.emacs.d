@@ -63,7 +63,9 @@
         '(("t" "Task" entry (file "~/src/org/inbox.org")
            "* TODO %?\n")
           ("j" "JIRA Task" entry (file "~/src/org/inbox.org")
-           "* TODO %^{JIRA Key} %?\n:PROPERTIES:\n:JIRA: %\\1\n:END:\n")))
+           "* TODO %^{JIRA Key} %?\n:PROPERTIES:\n:JIRA: %\\1\n:END:\n")
+          ("p" "Project" entry (file "~/src/org/projects.org")
+           "* TODO %?\n:PROPERTIES:\n:Created: %U\n:END:\n")))
 
   (setq org-agenda-custom-commands
         `(("d" "Dashboard"
@@ -77,11 +79,20 @@
                         (org-agenda-overriding-header "Задачи в work.org")))
             (tags-todo "+TODO=\"TODO\""
                        ((org-agenda-files '("~/src/org/inbox.org"))
-                        (org-agenda-overriding-header "Inbox")))))
+                        (org-agenda-overriding-header "Inbox")))
+            (tags-todo "+TODO=\"TODO\"|+TODO=\"INPROCESS\""
+                       ((org-agenda-files '("~/src/org/projects.org"))
+                        (org-agenda-overriding-header "Проекты")))))
           ("u" "Unplanned" tags "+unplanned"
            ((org-agenda-overriding-header "Незапланированные задачи")))
           ("i" "In Progress" todo "INPROCESS"
-           ((org-agenda-overriding-header "Сейчас в работе")))))
+           ((org-agenda-overriding-header "Сейчас в работе")))
+          ("r" "Review open items" tags-todo "+TODO=\"TODO\""
+           ((org-agenda-files '("~/src/org/reviews.org"
+                                "~/src/org/decisions.org"
+                                "~/src/org/incidents.org"
+                                "~/src/org/people.org"))
+            (org-agenda-overriding-header "Открытые пункты (reviews/decisions/incidents/people)")))))
 
   (setq org-archive-location "~/src/org/work.org_archive::datetree/")
 
@@ -91,13 +102,18 @@
   (add-hook 'org-agenda-finalize-hook #'my/org-agenda-color-by-tag))
 
 (defun my/org-auto-clock-on-state-change ()
-  "Auto-start clock when state changes to INPROCESS and auto-stop when state changes to PAUSE."
+  "Auto-start clock when state changes to INPROCESS and auto-stop when state changes to PAUSE.
+Also auto-set :Resolved: timestamp on incidents when marked DONE."
   (cond
    ((string= org-state "INPROCESS")
     (org-clock-in))
    ((string= org-state "PAUSE")
     (when org-clock-current-task
-      (org-clock-out)))))
+      (org-clock-out)))
+   ((string= org-state "DONE")
+    (when (org-entry-get (point) "Detected")
+      (org-set-property "Resolved"
+                        (format-time-string "[%Y-%m-%d %a %H:%M]"))))))
 
 ;;; Agenda color-coding by tag
 
@@ -174,6 +190,31 @@
   "Set current heading to PAUSE (clock stops automatically)."
   (interactive)
   (org-todo "PAUSE"))
+
+;;; Project association — strict completing-read from projects.org headings
+
+(defun my/org-collect-project-names ()
+  "Return list of level-1 heading titles from projects.org."
+  (let ((file (expand-file-name "~/src/org/projects.org"))
+        names)
+    (when (file-exists-p file)
+      (with-current-buffer (find-file-noselect file)
+        (org-with-wide-buffer
+         (goto-char (point-min))
+         (while (re-search-forward "^\\* " nil t)
+           (push (org-get-heading t t t t) names)))))
+    (nreverse names)))
+
+(defun my/org-set-project ()
+  "Set :Project: property on current heading from projects.org headings."
+  (interactive)
+  (unless (org-at-heading-p)
+    (org-back-to-heading t))
+  (let ((projects (my/org-collect-project-names)))
+    (unless projects
+      (user-error "No projects in projects.org"))
+    (org-set-property "Project" (completing-read "Project: " projects nil t))
+    (message "Project set.")))
 
 ;;; Link task to external system (JIRA, GitHub, GitLab)
 
@@ -346,11 +387,13 @@ Optionally start working on it immediately."
                     (todo-state (org-get-todo-state))
                     (clocked (org-clock-sum-current-item))
                     (jira (org-entry-get (point) "JIRA"))
+                    (project (org-entry-get (point) "Project"))
                     (unplanned (member "unplanned" (org-get-tags))))
                (when (and todo-state (> clocked 0))
-                 (push (format "- [%s] %s%s%s"
+                 (push (format "- [%s] %s%s%s%s"
                                (my/minutes-to-hh:mm clocked)
                                heading
+                               (if project (format " {%s}" project) "")
                                (if jira (format " (%s)" jira) "")
                                (if unplanned " [unplanned]" ""))
                        yesterday-entries))))))))
@@ -487,21 +530,41 @@ Optionally start working on it immediately."
 ;;; Archive done tasks
 
 (defun my/org-archive-done ()
-  "Archive all DONE/CANCELED entries under the current level-1 date heading."
+  "Archive all DONE/CANCELED entries under the current level-1 date heading.
+Prompts for :Project: on entries that lack it before archiving."
   (interactive)
   (org-back-to-heading t)
   (unless (= (org-current-level) 1)
     (user-error "Курсор должен быть на дневном заголовке (level 1)"))
-  (let ((count 0)
-        (start (point)))
-    (while (let ((end (save-excursion (org-end-of-subtree t) (point))))
-             (goto-char start)
-             (re-search-forward "^\\*\\* \\(DONE\\|CANCELED\\) " end t))
-      (beginning-of-line)
-      (org-archive-subtree)
-      (setq count (1+ count))
-      (goto-char start))
-    (message "Archived %d entries." count)))
+  ;; First pass: ensure all archivable entries have :Project:
+  (let ((start (point))
+        (projects (my/org-collect-project-names)))
+    (unless (or projects
+                (y-or-n-p "No projects in projects.org. Archive without :Project:? "))
+      (user-error "Add projects to projects.org first"))
+    (save-excursion
+      (let ((end (copy-marker (save-excursion (org-end-of-subtree t) (point)))))
+        (goto-char start)
+        (while (re-search-forward "^\\*\\* \\(DONE\\|CANCELED\\) " end t)
+          (unless (org-entry-get (point) "Project")
+            (when projects
+              (let ((proj (completing-read
+                           (format "Project for «%s»: "
+                                   (org-get-heading t t t t))
+                           (cons "[none]" projects) nil t)))
+                (unless (string= proj "[none]")
+                  (org-set-property "Project" proj))))))
+        (set-marker end nil)))
+    ;; Second pass: archive
+    (let ((count 0))
+      (while (let ((end (save-excursion (org-end-of-subtree t) (point))))
+               (goto-char start)
+               (re-search-forward "^\\*\\* \\(DONE\\|CANCELED\\) " end t))
+        (beginning-of-line)
+        (org-archive-subtree)
+        (setq count (1+ count))
+        (goto-char start))
+      (message "Archived %d entries." count))))
 
 ;;; Weekly review
 
@@ -631,7 +694,7 @@ Shows in *Weekly Review* buffer and copies to kill-ring."
     (with-current-buffer (find-file-noselect decision-file)
       (goto-char (point-max))
       (unless (bolp) (insert "\n"))
-      (insert (format "* %s %s\n" (format-time-string "%Y-%m-%d") title))
+      (insert (format "* TODO %s %s\n" (format-time-string "%Y-%m-%d") title))
       (insert "** Контекст\n\n")
       (insert "** Варианты\n\n")
       (insert "** Решение\n\n")
@@ -686,7 +749,7 @@ Shows in *Weekly Review* buffer and copies to kill-ring."
     (with-current-buffer (find-file-noselect incident-file)
       (goto-char (point-max))
       (unless (bolp) (insert "\n"))
-      (insert (format "* %s %s %s\n" (format-time-string "[%Y-%m-%d %a %H:%M]") severity summary))
+      (insert (format "* TODO %s %s %s\n" (format-time-string "[%Y-%m-%d %a %H:%M]") severity summary))
       (insert ":PROPERTIES:\n")
       (insert (format ":Detected: %s\n" (format-time-string "[%Y-%m-%d %a %H:%M]")))
       (insert ":Resolved: \n")
