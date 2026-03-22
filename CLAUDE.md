@@ -23,7 +23,7 @@ To test a change without restarting Emacs: `M-x eval-buffer` (current file) or `
 | `init-erl` | Erlang: erlang-mode + eglot |
 | `init-python` | Python: eglot only |
 | `init-c++` | C++: eglot + clangd (`--header-insertion=never`) |
-| `init-org` | Org agenda (custom views: `d`ashboard/`u`nplanned/`i`n-progress), capture, clock automation, meeting notes (`C-c m`), archive (`C-c A`), workday stats |
+| `init-org` | Org agenda (custom views: `d`ashboard/`u`nplanned/`i`n-progress), capture, clock automation, meeting notes (`C-c m`), archive (`C-c A`), workday stats, pomodoro (`C-c P`), weekly review (`C-c w`), code review journal (`C-c R`), decision log (`C-c D`), 1-on-1 notes (`C-c 1`), incident log (`C-c !`), timesheet (`C-c T`), energy tracker (`C-c E`), org-modern visuals |
 | `init-git` | magit (`C-c g g`), diff-hl, git-messenger, gptel-magit for AI commit messages |
 | `init-gptel` | gptel with OpenAI + Gemini backends; system prompt tuned for Go backend engineering |
 | `init-agent-shell` | agent-shell (`C-c a`) + knockknock notifications |

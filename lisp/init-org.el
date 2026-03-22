@@ -1,6 +1,12 @@
 ;;; init-org.el --- Org-mode configuration -*- lexical-binding: t -*-
 (use-package gnuplot :ensure t :defer t)
 
+;;; Visual: org-modern for pretty headings, tags, tables
+(use-package org-modern
+  :ensure t
+  :hook ((org-mode . org-modern-mode)
+         (org-agenda-finalize . org-modern-agenda)))
+
 (with-eval-after-load 'org
   (org-babel-do-load-languages
    'org-babel-load-languages
@@ -19,8 +25,27 @@
         '((sequence "TODO(t)" "PAUSE(p)" "INPROCESS(s)" "|" "DONE(d)" "CANCELED(c)")))
 
   (setq org-todo-keyword-faces
-        '(("TODO" . org-warning) ("INPROCESS" . "orange")
-          ("CANCELED" . "green")))
+        '(("TODO" . org-warning)
+          ("INPROCESS" . "orange")
+          ("PAUSE" . "gray")
+          ("DONE" . (:foreground "gray" :strike-through t))
+          ("CANCELED" . (:foreground "green" :strike-through t))))
+
+  ;; Priorities
+  (setq org-priority-faces
+        '((?A . (:foreground "red" :weight bold))
+          (?B . (:foreground "orange"))
+          (?C . (:foreground "gray"))))
+
+  ;; Effort estimates for quick selection via C-c C-x e
+  (setq org-global-properties
+        '(("Effort_ALL" . "0:10 0:20 0:30 1:00 2:00 4:00")))
+  (setq org-columns-default-format
+        "%40ITEM(Task) %TODO %6Effort(Est){:} %6CLOCKSUM(Actual){:}")
+
+  ;; Habit tracking (visual consistency graph in agenda)
+  (require 'org-habit)
+  (setq org-habit-graph-column 50)
 
   (setq org-log-done 'time)
   (setq org-log-into-drawer t)
@@ -41,13 +66,18 @@
            "* TODO %^{JIRA Key} %?\n:PROPERTIES:\n:JIRA: %\\1\n:END:\n")))
 
   (setq org-agenda-custom-commands
-        '(("d" "Dashboard"
-           ((agenda "" ((org-agenda-span 'day)))
+        `(("d" "Dashboard"
+           ((agenda "" ((org-agenda-span 'day)
+                        (org-agenda-overriding-header
+                         ,(lambda () (concat "Сегодня  " (my/org-day-progress))))))
             (todo "INPROCESS"
                   ((org-agenda-overriding-header "В работе")))
             (tags-todo "+TODO=\"TODO\""
                        ((org-agenda-files '("~/src/org/work.org"))
-                        (org-agenda-overriding-header "Задачи в work.org")))))
+                        (org-agenda-overriding-header "Задачи в work.org")))
+            (tags-todo "+TODO=\"TODO\""
+                       ((org-agenda-files '("~/src/org/inbox.org"))
+                        (org-agenda-overriding-header "Inbox")))))
           ("u" "Unplanned" tags "+unplanned"
            ((org-agenda-overriding-header "Незапланированные задачи")))
           ("i" "In Progress" todo "INPROCESS"
@@ -55,7 +85,10 @@
 
   (setq org-archive-location "~/src/org/work.org_archive::datetree/")
 
-  (add-hook 'org-after-todo-state-change-hook #'my/org-auto-clock-on-state-change))
+  (add-hook 'org-after-todo-state-change-hook #'my/org-auto-clock-on-state-change)
+
+  ;; Color-code agenda entries by tag
+  (add-hook 'org-agenda-finalize-hook #'my/org-agenda-color-by-tag))
 
 (defun my/org-auto-clock-on-state-change ()
   "Auto-start clock when state changes to INPROCESS and auto-stop when state changes to PAUSE."
@@ -65,6 +98,65 @@
    ((string= org-state "PAUSE")
     (when org-clock-current-task
       (org-clock-out)))))
+
+;;; Agenda color-coding by tag
+
+(defun my/org-agenda-color-by-tag ()
+  "Highlight agenda lines by tag: meetings blue, unplanned red."
+  (save-excursion
+    (goto-char (point-min))
+    (while (not (eobp))
+      (let ((tags (get-text-property (point) 'tags)))
+        (cond
+         ((member "meeting" tags)
+          (add-text-properties (line-beginning-position) (line-end-position)
+                               '(face (:foreground "SteelBlue"))))
+         ((member "unplanned" tags)
+          (add-text-properties (line-beginning-position) (line-end-position)
+                               '(face (:foreground "tomato"))))))
+      (forward-line 1))))
+
+;;; Day progress bar in dashboard
+
+(defun my/org-day-progress ()
+  "Return a string showing clocked hours today as a progress bar (target: 8h)."
+  (require 'org-clock)
+  (let* ((today (format-time-string "%Y-%m-%d"))
+         (total-minutes 0)
+         (work-file (expand-file-name "~/src/org/work.org")))
+    (when (file-exists-p work-file)
+      (with-current-buffer (find-file-noselect work-file)
+        (org-with-wide-buffer
+         (goto-char (point-min))
+         (when (re-search-forward (format "^\\* %s$" (regexp-quote today)) nil t)
+           (let ((end (save-excursion (org-end-of-subtree t) (point))))
+             (while (re-search-forward "^\\*\\* " end t)
+               (setq total-minutes (+ total-minutes (org-clock-sum-current-item)))))))))
+    (let* ((target 480) ; 8 hours
+           (filled (min 20 (round (* 20.0 (/ (float total-minutes) target)))))
+           (empty (- 20 filled))
+           (bar (concat "▓" (make-string filled ?█) (make-string empty ?░) "▓")))
+      (format "%s %s / 8:00" bar (my/minutes-to-hh:mm total-minutes)))))
+
+;;; Pomodoro via org-clock
+
+(defun my/org-pomodoro ()
+  "Start a 25-min focused block on current task.  Notifies when done."
+  (interactive)
+  (unless (org-at-heading-p)
+    (org-back-to-heading t))
+  (org-todo "INPROCESS")
+  (let ((task (org-get-heading t t t t)))
+    (run-at-time "25 min" nil
+                 (lambda ()
+                   (when (fboundp 'notifications-notify)
+                     (notifications-notify :title "Pomodoro"
+                                           :body "25 минут прошло. Перерыв!"
+                                           :urgency 'critical))
+                   (when org-clock-current-task
+                     (org-clock-out))
+                   (message "🍅 Pomodoro done: %s" task)))
+    (message "🍅 Pomodoro started: %s (25 min)" task)))
 
 ;;; Task state shortcuts (no arrow keys needed)
 
@@ -410,5 +502,289 @@ Optionally start working on it immediately."
       (setq count (1+ count))
       (goto-char start))
     (message "Archived %d entries." count)))
+
+;;; Weekly review
+
+(defun my/org-weekly-review ()
+  "Generate weekly summary: hours per day, top tasks, unplanned %.
+Shows in *Weekly Review* buffer and copies to kill-ring."
+  (interactive)
+  (require 'org-clock)
+  (let* ((work-file (expand-file-name "~/src/org/work.org"))
+         (today (current-time))
+         (dow (string-to-number (format-time-string "%u" today)))
+         (monday (time-subtract today (days-to-time (1- dow))))
+         (days-data nil)
+         (total-planned 0)
+         (total-unplanned 0)
+         (top-tasks nil))
+    (dotimes (i (min dow 5))
+      (let* ((date (time-add monday (days-to-time i)))
+             (date-str (format-time-string "%Y-%m-%d" date))
+             (day-name (format-time-string "%a" date))
+             (day-planned 0)
+             (day-unplanned 0))
+        (with-current-buffer (find-file-noselect work-file)
+          (org-with-wide-buffer
+           (goto-char (point-min))
+           (when (re-search-forward (format "^\\* %s$" (regexp-quote date-str)) nil t)
+             (let ((end (save-excursion (org-end-of-subtree t) (point))))
+               (while (re-search-forward "^\\*\\* " end t)
+                 (let* ((heading (org-get-heading t t t t))
+                        (clocked (org-clock-sum-current-item))
+                        (tags (org-get-tags)))
+                   (when (> clocked 0)
+                     (if (member "unplanned" tags)
+                         (setq day-unplanned (+ day-unplanned clocked))
+                       (setq day-planned (+ day-planned clocked)))
+                     (push (cons heading clocked) top-tasks))))))))
+        (setq total-planned (+ total-planned day-planned))
+        (setq total-unplanned (+ total-unplanned day-unplanned))
+        (push (list day-name date-str day-planned day-unplanned) days-data)))
+    ;; Sort top tasks by time
+    (setq top-tasks (seq-take (sort top-tasks (lambda (a b) (> (cdr a) (cdr b)))) 10))
+    (let* ((total (+ total-planned total-unplanned))
+           (unplanned-pct (if (> total 0)
+                              (round (* 100.0 (/ (float total-unplanned) total)))
+                            0))
+           (report
+            (with-temp-buffer
+              (insert "=== Недельный обзор ===\n\n")
+              (insert (format "%-5s %-12s %8s %10s %8s\n" "День" "Дата" "Planned" "Unplanned" "Всего"))
+              (insert (make-string 50 ?─) "\n")
+              (dolist (day (nreverse days-data))
+                (let ((dt (+ (nth 2 day) (nth 3 day))))
+                  (insert (format "%-5s %-12s %8s %10s %8s\n"
+                                  (nth 0 day) (nth 1 day)
+                                  (my/minutes-to-hh:mm (nth 2 day))
+                                  (my/minutes-to-hh:mm (nth 3 day))
+                                  (my/minutes-to-hh:mm dt)))))
+              (insert (make-string 50 ?─) "\n")
+              (insert (format "%-18s %8s %10s %8s\n" "Итого"
+                              (my/minutes-to-hh:mm total-planned)
+                              (my/minutes-to-hh:mm total-unplanned)
+                              (my/minutes-to-hh:mm total)))
+              (insert (format "\nНезапланированная работа: %d%%\n" unplanned-pct))
+              (when top-tasks
+                (insert "\nТоп задачи по времени:\n")
+                (dolist (task top-tasks)
+                  (insert (format "  [%s] %s\n"
+                                  (my/minutes-to-hh:mm (cdr task))
+                                  (car task)))))
+              (buffer-string))))
+      (kill-new report)
+      (with-current-buffer (get-buffer-create "*Weekly Review*")
+        (erase-buffer)
+        (insert report)
+        (goto-char (point-min))
+        (display-buffer (current-buffer)))
+      (message "Weekly review скопирован в kill-ring."))))
+
+;;; EOD reminder
+
+(defun my/org-eod-reminder ()
+  "Remind to review the day when quitting Emacs after 17:00."
+  (when (and (>= (string-to-number (format-time-string "%H")) 17)
+             (my/org-daily-heading))
+    (when (y-or-n-p "Конец дня. Показать итоги? ")
+      (save-excursion
+        (with-current-buffer (find-file-noselect (expand-file-name "~/src/org/work.org"))
+          (goto-char (marker-position (my/org-daily-heading)))
+          (my/org-calculate-totals-for-day)))))
+  t)
+
+(add-hook 'kill-emacs-query-functions #'my/org-eod-reminder)
+
+;;; Code review capture
+
+(defun my/org-capture-code-review ()
+  "Capture a code review note with file context and optional code snippet."
+  (interactive)
+  (let* ((file (or (buffer-file-name) (buffer-name)))
+         (line (line-number-at-pos))
+         (snippet (when (use-region-p)
+                    (buffer-substring-no-properties (region-beginning) (region-end))))
+         (comment (read-string "Review comment: "))
+         (review-file (expand-file-name "~/src/org/reviews.org")))
+    (with-current-buffer (find-file-noselect review-file)
+      (goto-char (point-max))
+      (unless (bolp) (insert "\n"))
+      (insert (format "* TODO %s\n" comment))
+      (insert ":PROPERTIES:\n")
+      (insert (format ":File: %s:%d\n" (abbreviate-file-name file) line))
+      (insert ":END:\n")
+      (when snippet
+        (let ((mode-name (replace-regexp-in-string
+                          "-mode$\\|-ts-mode$" ""
+                          (symbol-name major-mode))))
+          (insert (format "#+begin_src %s\n%s\n#+end_src\n" mode-name snippet))))
+      (save-buffer))
+    (message "Review note saved: %s" comment)))
+
+;;; Decision log capture
+
+(defun my/org-capture-decision ()
+  "Capture an architecture/technical decision."
+  (interactive)
+  (let* ((title (read-string "Decision: "))
+         (decision-file (expand-file-name "~/src/org/decisions.org")))
+    (with-current-buffer (find-file-noselect decision-file)
+      (goto-char (point-max))
+      (unless (bolp) (insert "\n"))
+      (insert (format "* %s %s\n" (format-time-string "%Y-%m-%d") title))
+      (insert "** Контекст\n\n")
+      (insert "** Варианты\n\n")
+      (insert "** Решение\n\n")
+      (insert "** Последствия\n\n")
+      (save-buffer)
+      ;; Position cursor at Контекст for immediate editing
+      (goto-char (point-max))
+      (re-search-backward "^\\*\\* Контекст$")
+      (forward-line 1)
+      (switch-to-buffer (current-buffer)))
+    (message "Decision log: %s — fill in the sections." title)))
+
+;;; 1-on-1 meeting notes
+
+(defun my/org-one-on-one ()
+  "Start 1-on-1 notes for a person.  Creates/finds section in people.org."
+  (interactive)
+  (let* ((people-file (expand-file-name "~/src/org/people.org"))
+         (person (read-string "С кем: "))
+         (today (format-time-string "%Y-%m-%d")))
+    (with-current-buffer (find-file-noselect people-file)
+      (org-with-wide-buffer
+       (goto-char (point-min))
+       ;; Find or create person heading
+       (unless (re-search-forward (format "^\\* %s$" (regexp-quote person)) nil t)
+         (goto-char (point-max))
+         (unless (bolp) (insert "\n"))
+         (insert (format "* %s\n" person)))
+       ;; Add today's date subheading
+       (org-end-of-subtree t)
+       (unless (bolp) (insert "\n"))
+       (insert (format "** %s\n" today))
+       (insert "*** Обсудить\n- \n")
+       (insert "*** Заметки\n\n")
+       (insert "*** Action items\n- [ ] \n")
+       (save-buffer)
+       ;; Position at "Обсудить" list
+       (re-search-backward "^\\*\\*\\* Обсудить$")
+       (forward-line 1)
+       (end-of-line))
+      (switch-to-buffer (current-buffer)))
+    (message "1-on-1 с %s — заполни повестку." person)))
+
+;;; Incident log capture
+
+(defun my/org-capture-incident ()
+  "Capture a production incident with severity."
+  (interactive)
+  (let* ((severity (completing-read "Severity: " '("P1" "P2" "P3") nil t))
+         (summary (read-string "Summary: "))
+         (incident-file (expand-file-name "~/src/org/incidents.org")))
+    (with-current-buffer (find-file-noselect incident-file)
+      (goto-char (point-max))
+      (unless (bolp) (insert "\n"))
+      (insert (format "* %s %s %s\n" (format-time-string "[%Y-%m-%d %a %H:%M]") severity summary))
+      (insert ":PROPERTIES:\n")
+      (insert (format ":Detected: %s\n" (format-time-string "[%Y-%m-%d %a %H:%M]")))
+      (insert ":Resolved: \n")
+      (insert ":END:\n")
+      (insert "** Timeline\n\n")
+      (insert "** Root cause\n\n")
+      (insert "** Resolution\n\n")
+      (insert "** Action items\n- [ ] \n")
+      (save-buffer)
+      (re-search-backward "^\\*\\* Timeline$")
+      (forward-line 1)
+      (switch-to-buffer (current-buffer)))
+    (message "Incident %s: %s" severity summary)))
+
+;;; Timesheet export
+
+(defun my/org-timesheet (&optional days)
+  "Export clocked time for the last N DAYS as an org table.
+Defaults to 5 (work week)."
+  (interactive "P")
+  (require 'org-clock)
+  (let* ((days (or days 5))
+         (work-file (expand-file-name "~/src/org/work.org"))
+         (rows nil))
+    (with-current-buffer (find-file-noselect work-file)
+      (org-with-wide-buffer
+       (dotimes (i days)
+         (let* ((date (time-subtract (current-time) (days-to-time i)))
+                (date-str (format-time-string "%Y-%m-%d" date)))
+           (goto-char (point-min))
+           (when (re-search-forward (format "^\\* %s$" (regexp-quote date-str)) nil t)
+             (let ((end (save-excursion (org-end-of-subtree t) (point))))
+               (while (re-search-forward "^\\*\\* " end t)
+                 (let* ((heading (org-get-heading t t t t))
+                        (clocked (org-clock-sum-current-item))
+                        (jira (org-entry-get (point) "JIRA")))
+                   (when (> clocked 0)
+                     (push (list date-str
+                                 (my/minutes-to-hh:mm clocked)
+                                 (or jira "")
+                                 heading)
+                           rows))))))))))
+    (with-current-buffer (get-buffer-create "*Timesheet*")
+      (erase-buffer)
+      (insert "| Дата | Время | JIRA | Задача |\n")
+      (insert "|------+-------+------+--------|\n")
+      (dolist (row (nreverse rows))
+        (insert (format "| %s | %s | %s | %s |\n"
+                        (nth 0 row) (nth 1 row) (nth 2 row) (nth 3 row))))
+      (insert "|------+-------+------+--------|\n")
+      (org-mode)
+      (goto-char (point-min))
+      (org-table-align)
+      (display-buffer (current-buffer)))
+    (message "Timesheet за %d дней." days)))
+
+;;; Energy tracker (uses gnuplot for visualization)
+
+(defun my/org-energy-check ()
+  "Log current energy level (1-5) to energy.org table."
+  (interactive)
+  (let* ((level (read-number "Энергия (1-5): "))
+         (energy-file (expand-file-name "~/src/org/energy.org"))
+         (timestamp (format-time-string "%Y-%m-%d %a %H:%M")))
+    (unless (<= 1 level 5)
+      (user-error "Level must be 1-5"))
+    (with-current-buffer (find-file-noselect energy-file)
+      (goto-char (point-min))
+      ;; Create table header if file is empty or has no table
+      (unless (re-search-forward "^| Дата" nil t)
+        (goto-char (point-max))
+        (unless (bolp) (insert "\n"))
+        (insert "#+TITLE: Energy Tracker\n\n")
+        (insert "| Дата | Уровень |\n")
+        (insert "|------+---------|\n"))
+      ;; Go to end of table
+      (goto-char (point-min))
+      (re-search-forward "^|" nil t)
+      (while (and (not (eobp)) (looking-at-p ".*|"))
+        (forward-line 1))
+      ;; Back up to last table line
+      (forward-line -1)
+      (end-of-line)
+      (insert (format "\n| %s | %d |" timestamp (truncate level)))
+      (org-table-align)
+      (save-buffer))
+    (message "Energy: %d at %s" (truncate level) timestamp)))
+
+(defun my/org-energy-plot ()
+  "Plot energy levels from energy.org using gnuplot."
+  (interactive)
+  (let ((energy-file (expand-file-name "~/src/org/energy.org")))
+    (unless (file-exists-p energy-file)
+      (user-error "No energy.org file"))
+    (find-file energy-file)
+    (goto-char (point-min))
+    (re-search-forward "^|" nil t)
+    (beginning-of-line)
+    (message "Cursor on table. Use C-c \" to plot with orgtbl or add a #+PLOT line.")))
 
 (provide 'init-org)

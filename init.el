@@ -46,6 +46,13 @@
 (global-set-key (kbd "C-c u") #'my/org-urgent-task)
 (global-set-key (kbd "C-c s") #'my/org-standup)
 (global-set-key (kbd "C-c m") #'my/org-meeting)
+(global-set-key (kbd "C-c w") #'my/org-weekly-review)
+(global-set-key (kbd "C-c R") #'my/org-capture-code-review)
+(global-set-key (kbd "C-c D") #'my/org-capture-decision)
+(global-set-key (kbd "C-c 1") #'my/org-one-on-one)
+(global-set-key (kbd "C-c !") #'my/org-capture-incident)
+(global-set-key (kbd "C-c T") #'my/org-timesheet)
+(global-set-key (kbd "C-c E") #'my/org-energy-check)
 
 ;; Org keybindings — org-mode only (need cursor on a heading)
 (with-eval-after-load 'org
@@ -54,6 +61,7 @@
   (define-key org-mode-map (kbd "C-c i") #'my/org-start)
   (define-key org-mode-map (kbd "C-c p") #'my/org-pause)
   (define-key org-mode-map (kbd "C-c l") #'my/org-link-task)
+  (define-key org-mode-map (kbd "C-c P") #'my/org-pomodoro)
   (define-key org-mode-map (kbd "C-c A") #'my/org-archive-done))
 
 (desktop-save-mode t)
@@ -201,7 +209,7 @@
                      (float-time (time-subtract after-init-time before-init-time))
                      gcs-done)
             (when (display-graphic-p)
-              (run-with-idle-timer 1 nil #'org-agenda-list))))
+              (run-with-idle-timer 1 nil (lambda () (org-agenda nil "d"))))))
 (custom-set-variables
  ;; custom-set-variables was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
