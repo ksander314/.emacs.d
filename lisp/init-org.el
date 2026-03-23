@@ -324,6 +324,7 @@ Optionally start working on it immediately."
     (org-with-wide-buffer
      (goto-char (point-min))
      (when (re-search-forward (format "^\\* %s$" (regexp-quote date-str)) nil t)
+       (goto-char (line-beginning-position))
        (point-marker)))))
 
 (defun my/org-daily-heading ()
