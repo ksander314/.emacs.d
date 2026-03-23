@@ -74,6 +74,8 @@
                          ,(lambda () (concat "Сегодня  " (my/org-day-progress))))))
             (todo "INPROCESS"
                   ((org-agenda-overriding-header "В работе")))
+            (todo "PAUSE"
+                  ((org-agenda-overriding-header "На паузе")))
             (tags-todo "+TODO=\"TODO\""
                        ((org-agenda-files '("~/src/org/work.org"))
                         (org-agenda-overriding-header "Задачи в work.org")))
@@ -102,7 +104,7 @@
   (add-hook 'org-agenda-finalize-hook #'my/org-agenda-color-by-tag))
 
 (defun my/org-auto-clock-on-state-change ()
-  "Auto-start clock when state changes to INPROCESS and auto-stop when state changes to PAUSE.
+  "Auto-start clock on INPROCESS, auto-stop on DONE/PAUSE/CANCELED.
 Also auto-set :Resolved: timestamp on incidents when marked DONE."
   (cond
    ((string= org-state "INPROCESS")
@@ -111,9 +113,15 @@ Also auto-set :Resolved: timestamp on incidents when marked DONE."
     (when org-clock-current-task
       (org-clock-out)))
    ((string= org-state "DONE")
+    (when org-clock-current-task
+      (org-clock-out))
     (when (org-entry-get (point) "Detected")
       (org-set-property "Resolved"
-                        (format-time-string "[%Y-%m-%d %a %H:%M]"))))))
+                        (format-time-string "[%Y-%m-%d %a %H:%M]"))))
+   ((string= org-state "CANCELED")
+    (when org-clock-current-task
+      (org-clock-out))))
+  (save-buffer))
 
 ;;; Agenda color-coding by tag
 
@@ -354,6 +362,20 @@ Optionally start working on it immediately."
                      nil
                      (marker-position marker)))
     (message "Refiled to today.")))
+
+(defun my/org-agenda-refile-to-today ()
+  "Refile the agenda entry at point to today's heading in work.org."
+  (interactive)
+  (org-agenda-check-no-diary)
+  (let* ((marker (or (org-get-at-bol 'org-marker)
+                     (org-agenda-error)))
+         (buffer (marker-buffer marker))
+         (pos (marker-position marker)))
+    (with-current-buffer buffer
+      (org-with-wide-buffer
+       (goto-char pos)
+       (my/org-refile-to-today)))
+    (org-agenda-redo)))
 
 ;;; Standup report
 

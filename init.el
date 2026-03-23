@@ -65,6 +65,15 @@
   (define-key org-mode-map (kbd "C-c P") #'my/org-pomodoro)
   (define-key org-mode-map (kbd "C-c A") #'my/org-archive-done))
 
+(with-eval-after-load 'org-agenda
+  (define-key org-agenda-mode-map (kbd "C-c r") #'my/org-agenda-refile-to-today)
+  (define-key org-agenda-mode-map (kbd "C-c d")
+    (lambda () (interactive) (org-agenda-todo "DONE")))
+  (define-key org-agenda-mode-map (kbd "C-c i")
+    (lambda () (interactive) (org-agenda-todo "INPROCESS")))
+  (define-key org-agenda-mode-map (kbd "C-c p")
+    (lambda () (interactive) (org-agenda-todo "PAUSE"))))
+
 (desktop-save-mode t)
 (with-eval-after-load 'eglot
   (add-to-list 'desktop-minor-mode-table '(eglot--managed-mode nil)))
