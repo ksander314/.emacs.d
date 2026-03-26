@@ -84,7 +84,11 @@
                         (org-agenda-overriding-header "Inbox")))
             (tags-todo "+TODO=\"TODO\"|+TODO=\"INPROCESS\""
                        ((org-agenda-files '("~/src/org/projects.org"))
-                        (org-agenda-overriding-header "Проекты")))))
+                        (org-agenda-overriding-header "Проекты")))
+            (tags "+CLOSED>=\"<today>\""
+                  ((org-agenda-overriding-header "Выполнено сегодня")
+                   (org-agenda-skip-function
+                    '(org-agenda-skip-entry-if 'nottodo 'done))))))
           ("u" "Unplanned" tags "+unplanned"
            ((org-agenda-overriding-header "Незапланированные задачи")))
           ("i" "In Progress" todo "INPROCESS"
@@ -101,7 +105,8 @@
   (add-hook 'org-after-todo-state-change-hook #'my/org-auto-clock-on-state-change)
 
   ;; Color-code agenda entries by tag
-  (add-hook 'org-agenda-finalize-hook #'my/org-agenda-color-by-tag))
+  (add-hook 'org-agenda-finalize-hook #'my/org-agenda-color-by-tag)
+  (add-hook 'org-agenda-finalize-hook #'my/org-agenda-annotate-done-clocksum))
 
 (defun my/org-auto-clock-on-state-change ()
   "Auto-start clock on INPROCESS, auto-stop on DONE/PAUSE/CANCELED.
@@ -139,6 +144,28 @@ Also auto-set :Resolved: timestamp on incidents when marked DONE."
           (add-text-properties (line-beginning-position) (line-end-position)
                                '(face (:foreground "tomato"))))))
       (forward-line 1))))
+
+;;; Show clocked time for "done today" agenda entries
+
+(defun my/org-agenda-annotate-done-clocksum ()
+  "Annotate entries in the 'Выполнено сегодня' agenda block with clocked time."
+  (save-excursion
+    (goto-char (point-min))
+    (when (re-search-forward "^Выполнено сегодня" nil t)
+      (forward-line 1)
+      (while (and (not (eobp))
+                  (not (looking-at "^[^ \t]")))
+        (let ((marker (get-text-property (point) 'org-marker)))
+          (when marker
+            (let ((minutes (org-with-point-at marker
+                             (org-clock-sum-current-item))))
+              (when (> minutes 0)
+                (let ((inhibit-read-only t))
+                  (end-of-line)
+                  (insert (propertize
+                           (format "  [%s]" (org-duration-from-minutes minutes))
+                           'face 'org-agenda-dimmed-todo-face)))))))
+        (forward-line 1)))))
 
 ;;; Day progress bar in dashboard
 
