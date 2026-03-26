@@ -13,7 +13,40 @@
          :map git-messenger-map
          ("m" . git-messenger:copy-message)))
 
-(use-package markdown-mode :ensure t :defer t)
+(defun my/markdown-toggle-pretty ()
+  "Toggle between pretty and raw markdown view."
+  (interactive)
+  (if markdown-hide-markup
+      (progn
+        (setq-local markdown-hide-markup nil)
+        (setq-local markdown-header-scaling nil)
+        (variable-pitch-mode -1)
+        (olivetti-mode -1))
+    (setq-local markdown-hide-markup t)
+    (setq-local markdown-header-scaling t)
+    (variable-pitch-mode 1)
+    (olivetti-mode 1))
+  (font-lock-flush)
+  (font-lock-ensure))
+
+(use-package markdown-mode
+  :ensure t
+  :defer t
+  :hook ((markdown-mode . visual-line-mode)
+         (markdown-mode . variable-pitch-mode))
+  :bind (:map markdown-mode-map
+              ("C-c C-v" . my/markdown-toggle-pretty))
+  :custom
+  (markdown-header-scaling t)
+  (markdown-hide-markup t)
+  (markdown-fontify-code-blocks-natively t)
+  (markdown-command "pandoc -f markdown -t html5"))
+
+(use-package olivetti
+  :ensure t
+  :hook (markdown-mode . olivetti-mode)
+  :custom
+  (olivetti-body-width 80))
 
 (use-package gptel-magit
   :ensure t
