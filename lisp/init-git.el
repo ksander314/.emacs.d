@@ -18,24 +18,24 @@
   (interactive)
   (if markdown-hide-markup
       (progn
-        (setq-local markdown-hide-markup nil)
+        (markdown-toggle-markup-hiding)
         (setq-local markdown-header-scaling nil)
+        (markdown-update-header-faces markdown-header-scaling)
         (variable-pitch-mode -1)
         (olivetti-mode -1))
-    (setq-local markdown-hide-markup t)
+    (markdown-toggle-markup-hiding)
     (setq-local markdown-header-scaling t)
+    (markdown-update-header-faces markdown-header-scaling)
     (variable-pitch-mode 1)
-    (olivetti-mode 1))
-  (font-lock-flush)
-  (font-lock-ensure))
+    (olivetti-mode 1)))
 
 (use-package markdown-mode
   :ensure t
   :defer t
-  :hook ((markdown-mode . visual-line-mode)
-         (markdown-mode . variable-pitch-mode))
   :bind (:map markdown-mode-map
               ("C-c C-v" . my/markdown-toggle-pretty))
+  :hook ((markdown-mode . visual-line-mode)
+         (markdown-mode . variable-pitch-mode))
   :custom
   (markdown-header-scaling t)
   (markdown-hide-markup t)
@@ -46,7 +46,7 @@
   :ensure t
   :hook (markdown-mode . olivetti-mode)
   :custom
-  (olivetti-body-width 80))
+  (olivetti-body-width 0.75))
 
 (use-package gptel-magit
   :ensure t

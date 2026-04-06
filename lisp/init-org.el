@@ -382,12 +382,11 @@ Optionally start working on it immediately."
 (defun my/org-refile-to-today ()
   "Refile current entry to today's heading in work.org."
   (interactive)
-  (let ((marker (my/org-ensure-daily-heading)))
+  (let* ((marker (my/org-ensure-daily-heading))
+         (file (buffer-file-name (marker-buffer marker)))
+         (pos (marker-position marker)))
     (org-refile nil nil
-               (list nil
-                     (buffer-file-name (marker-buffer marker))
-                     nil
-                     (marker-position marker)))
+               (list (format-time-string "%Y-%m-%d") file nil pos))
     (message "Refiled to today.")))
 
 (defun my/org-agenda-refile-to-today ()
@@ -696,15 +695,19 @@ Shows in *Weekly Review* buffer and copies to kill-ring."
 ;;; EOD reminder
 
 (defun my/org-eod-reminder ()
-  "Remind to review the day when quitting Emacs after 17:00."
-  (when (and (>= (string-to-number (format-time-string "%H")) 17)
-             (my/org-daily-heading))
-    (when (y-or-n-p "Конец дня. Показать итоги? ")
-      (save-excursion
-        (with-current-buffer (find-file-noselect (expand-file-name "~/src/org/work.org"))
-          (goto-char (marker-position (my/org-daily-heading)))
-          (my/org-calculate-totals-for-day)))))
-  t)
+  "Remind to review the day when quitting Emacs after 17:00.
+When user says yes, show daily summary and abort quit."
+  (if (and (>= (string-to-number (format-time-string "%H")) 17)
+           (my/org-daily-heading)
+           (y-or-n-p "Конец дня. Показать итоги? "))
+      (let ((buf (find-file-noselect (expand-file-name "~/src/org/work.org"))))
+        (switch-to-buffer buf)
+        (goto-char (marker-position (my/org-daily-heading)))
+        (org-narrow-to-subtree)
+        (my/org-calculate-totals-for-day)
+        (goto-char (point-min))
+        nil)
+    t))
 
 (add-hook 'kill-emacs-query-functions #'my/org-eod-reminder)
 
