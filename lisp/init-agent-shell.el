@@ -3,6 +3,8 @@
   :ensure t
   :bind ("C-c A" . agent-shell)
   :config
+  (setq agent-shell-anthropic-claude-acp-command
+        '("claude-agent-acp" "--effort" "max"))
   (unless (executable-find "claude-agent-acp")
     (message "claude-agent-acp not found; run: npm install -g @zed-industries/claude-agent-acp")))
 
