@@ -6,7 +6,12 @@
   (setq agent-shell-anthropic-claude-acp-command
         '("claude-agent-acp" "--effort" "max"))
   (unless (executable-find "claude-agent-acp")
-    (message "claude-agent-acp not found; run: npm install -g @zed-industries/claude-agent-acp")))
+    (message "claude-agent-acp not found; run: npm install -g @zed-industries/claude-agent-acp"))
+  ;; RET inserts newline; M-RET submits — prevents accidental sends
+  (define-key agent-shell-mode-map (kbd "RET") #'newline)
+  (define-key agent-shell-mode-map (kbd "<return>") #'newline)
+  (define-key agent-shell-mode-map (kbd "M-RET") #'shell-maker-submit)
+  (define-key agent-shell-mode-map (kbd "<M-return>") #'shell-maker-submit))
 
 
 ;;; Persistent alert stack for agent-shell
