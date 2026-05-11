@@ -17,6 +17,7 @@ eshell/
 org-clock-save.el
 org-persist/
 projectile-bookmarks.eld
+/bookmarks
 request/
 tramp
 transient/
