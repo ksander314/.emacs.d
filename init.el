@@ -190,7 +190,13 @@
 (setq default-input-method "cyrillic-dvorak-programming")
 (use-package reverse-im
   :config
-  (reverse-im-activate "cyrillic-dvorak-programming"))
+  (reverse-im-activate "cyrillic-dvorak-programming")
+  ;; reverse-im skips translations whose target char exists in the standard
+  ;; layout (to avoid corrupting plain text input), so punctuation chords
+  ;; on RussianWin (where physical / sends . and Shift+/ sends ,) aren't
+  ;; auto-translated. Add them explicitly.
+  (define-key function-key-map (kbd "C-.") (kbd "C-/"))
+  (define-key function-key-map (kbd "C-,") (kbd "C-?")))
 
 ;; Misc
 (use-package yaml-mode :defer t)
