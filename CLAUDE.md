@@ -20,19 +20,15 @@ Module             Purpose
 init-utils         File utilities (my/delete-this-file, my/rename-this-file-and-buffer), C-c f opens file:line refs
 init-go            Go: eglot + gopls (staticcheck), auto-format/organize-imports on save, my/go-debug-test for dape
 init-rust          Rust: rust-mode + eglot + rust-analyzer (clippy), auto-format on save
-init-haskell       Haskell: haskell-mode + eglot, cabal build
-init-erl           Erlang: erlang-mode + eglot
-init-python        Python: eglot only
 init-c++           C++: eglot + clangd (--header-insertion=never)
 init-org           Org agenda (d=dashboard, u=unplanned, i=in-progress, r=review open items), capture (t=task,
                    j=jira, p=project), clock automation, project association (my/org-set-project), meeting notes
                    (C-c m), archive with :Project: prompt (C-c A), pomodoro (C-c P), weekly review (C-c w),
                    standup, code review journal (C-c R), decision log (C-c D), 1-on-1 notes (C-c 1), incident
-                   log with auto-resolve (C-c !), timesheet (C-c T), energy tracker (C-c E), org-modern visuals
-init-git           magit (C-c g g), diff-hl, git-messenger, gptel-magit for AI commit messages
+                   log with auto-resolve (C-c !), timesheet (C-c T), energy tracker (C-c E)
+init-git           magit (C-c g g), diff-hl
 init-gptel         gptel with OpenAI + Gemini backends; system prompt tuned for Go backend engineering
-init-agent-shell   agent-shell (C-c a) + knockknock notifications
-init-copilot       Copilot (loaded only if ~/src/copilot.el exists); C-c C-e to trigger, C-c a to accept
+init-agent-shell   agent-shell (C-c A) + persistent alert stack
 init-display       Relative line numbers, trailing whitespace highlighting
 init-eshell        Custom prompt, per-command history append, C-c C-r for consult-history
 init-keystroke-log Records keystrokes to keystroke-log.csv; my/klog-typo-report, my/klog-char-freq-report,
@@ -49,6 +45,5 @@ init-focus-shield  Distraction blocking during focused work
 - Completion stack: **vertico** (minibuffer) + **orderless** (matching) + **marginalia** (annotations) + **consult** (search/navigation) + **corfu** (in-buffer).
 - Tree-sitter via **treesit-auto** (`treesit-auto-install t`); grammars for go/c/cpp/rust/python/yaml/toml/json/bash are ensured via idle timer on startup.
 - Auth credentials read from `~/.authinfo` via `auth-source`.
-- JIRA integration is conditional on `user-mail-address` matching `astepanenko@tradingview.com`.
-- External packages loaded conditionally from `~/src/`: copilot.el, jira.el, carp/lisp/agent.el.
+- External packages loaded conditionally from `~/src/`: carp/lisp/agent.el.
 - Input method: `cyrillic-dvorak-programming` (defined in `lisp/cyrillic-dvorak-programming.el`), with **reverse-im** so shortcuts work regardless of active input method.

@@ -1,8 +1,4 @@
 ;;; init-eshell.el --- Eshell configuration -*- lexical-binding: t -*-
-(use-package eshell-syntax-highlighting
-  :ensure t
-  :hook (eshell-mode . eshell-syntax-highlighting-global-mode))
-
 (defface my/eshell-prompt-dir-face
   '((t :foreground "#0a64f5" :weight bold))
   "Face for directory in eshell prompt.")

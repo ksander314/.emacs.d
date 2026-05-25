@@ -5,17 +5,25 @@
 
 (add-to-list 'load-path (expand-file-name "lisp" user-emacs-directory))
 
-;; Package management
-(require 'package)
-(add-to-list 'package-archives '("melpa" . "https://melpa.org/packages/") t)
-(package-initialize)
-(let ((archive (expand-file-name "archives/melpa/archive-contents" package-user-dir)))
-  (when (or (not (file-exists-p archive))
-            (time-less-p (days-to-time 1)
-                         (time-since (file-attribute-modification-time
-                                      (file-attributes archive)))))
-    (package-refresh-contents)))
-(setq use-package-always-ensure t)
+;; Package management — straight.el pins every package to a git SHA and
+;; writes a lockfile (straight/versions/default.el) for reproducible installs.
+;; Upgrades are manual (straight-pull-all + straight-freeze-versions), not
+;; automatic, so a compromised MELPA recipe can't sneak in on next startup.
+(defvar bootstrap-version)
+(let ((bootstrap-file
+       (expand-file-name
+        "straight/repos/straight.el/bootstrap.el" user-emacs-directory))
+      (bootstrap-version 7))
+  (unless (file-exists-p bootstrap-file)
+    (with-current-buffer
+        (url-retrieve-synchronously
+         "https://raw.githubusercontent.com/radian-software/straight.el/develop/install.el"
+         'silent 'inhibit-cookies)
+      (goto-char (point-max))
+      (eval-print-last-sexp)))
+  (load bootstrap-file nil 'nomessage))
+(straight-use-package 'use-package)
+(setq straight-use-package-by-default t)
 
 ;; Auth
 (setq auth-sources '("~/.authinfo"))
@@ -24,16 +32,12 @@
 (require 'init-utils)
 (require 'init-go)
 (require 'init-c++)
-(require 'init-haskell)
 (require 'init-org)
 (require 'init-git)
 (require 'init-rust)
-(require 'init-erl)
 (require 'init-gptel)
 (require 'init-display)
 (require 'init-eshell)
-(require 'init-python)
-(require 'init-copilot)
 (require 'init-agent-shell)
 (require 'init-keystroke-log)
 (require 'init-focus-shield)
@@ -199,25 +203,12 @@
   (define-key function-key-map (kbd "C-,") (kbd "C-?")))
 
 ;; Misc
-(use-package yaml-mode :defer t)
-(use-package json-mode :defer t)
-(use-package editorconfig :config (editorconfig-mode 1))
 (use-package multiple-cursors
   :bind ("C-c C-*" . mc/mark-all-in-region-regexp))
 (use-package dape
   :commands (dape dape-breakpoint-toggle)
   :config
   (setq dape-request-timeout 30))
-
-;; JIRA (conditional)
-(when (string= user-mail-address "astepanenko@tradingview.com")
-  (add-to-list 'load-path "~/src/jira.el")
-  (require 'jira)
-  (setq jira-base-url "https://tradingview-air.atlassian.net"
-        jira-token-is-personal-access-token nil
-        jira-api-version 3)
-  (add-hook 'jira-issues-mode-hook 'hl-line-mode)
-  (setq jira-issues-table-fields '(:key :issue-type-name :status-name :assignee-name :summary)))
 
 ;; External
 (let ((f (expand-file-name "~/src/carp/lisp/agent.el")))
@@ -230,18 +221,3 @@
                      gcs-done)
             (when (display-graphic-p)
               (run-with-idle-timer 1 nil (lambda () (org-agenda nil "d"))))))
-(custom-set-variables
- ;; custom-set-variables was added by Custom.
- ;; If you edit it by hand, you could mess it up, so be careful.
- ;; Your init file should contain only one such instance.
- ;; If there is more than one, they won't work right.
- '(package-vc-selected-packages
-   '((agent-shell-knockknock :url
-			     "https://github.com/xenodium/agent-shell-knockknock")
-     (knockknock :url "https://github.com/xenodium/knockknock"))))
-(custom-set-faces
- ;; custom-set-faces was added by Custom.
- ;; If you edit it by hand, you could mess it up, so be careful.
- ;; Your init file should contain only one such instance.
- ;; If there is more than one, they won't work right.
- )

@@ -31,4 +31,8 @@ tree-sitter/
 /projects
 .emacs.d
 eln-cache/
-straight/
+/straight/build/
+/straight/build-cache.el
+/straight/repos/
+/straight/modified/
+/straight/watcher.log

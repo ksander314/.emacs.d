@@ -1,6 +1,5 @@
 ;;; init-go.el --- Go configuration -*- lexical-binding: t -*-
 (use-package go-mode :ensure t :defer t)
-(use-package gotest :ensure t :defer t)
 
 (defun my/go-eglot-organize-imports ()
   (when (eglot-managed-p)
@@ -18,6 +17,16 @@
     (end-of-line)
     (when (re-search-backward "^func \\(Test[a-zA-Z0-9_]+\\)" nil t)
       (match-string-no-properties 1))))
+
+(defun my/go-test-current ()
+  "Run the Go test at point via `compile`."
+  (interactive)
+  (let ((name (my/go-test-name-at-point))
+        (default-directory (file-name-directory (buffer-file-name))))
+    (unless name
+      (user-error "No test function found at point"))
+    (compile (format "go test -v -run %s"
+                     (shell-quote-argument (concat "^" name "$"))))))
 
 (defun my/go-debug-test ()
   "Debug the Go test function at point with dape."
@@ -41,7 +50,7 @@
   (subword-mode)
   (hl-line-mode)
   (local-set-key (kbd "C-c c") 'project-compile)
-  (local-set-key (kbd "C-c t") 'go-test-current-test)
+  (local-set-key (kbd "C-c t") 'my/go-test-current)
   (local-set-key (kbd "C-c C-s") 'dape)
   (local-set-key (kbd "C-c C-b") 'dape-breakpoint-toggle)
   (local-set-key (kbd "C-c C-t") 'my/go-debug-test)

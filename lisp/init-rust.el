@@ -3,7 +3,6 @@
   :ensure t :defer t)
 
 (use-package cargo :ensure t :defer t)
-(use-package toml-mode :ensure t :defer t)
 
 (defun my/rust-before-save ()
   (when (eglot-managed-p)

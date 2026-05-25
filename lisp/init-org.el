@@ -1,17 +1,8 @@
 ;;; init-org.el --- Org-mode configuration -*- lexical-binding: t -*-
-(use-package gnuplot :ensure t :defer t)
-
-;;; Visual: org-modern for pretty headings, tags, tables
-(use-package org-modern
-  :ensure t
-  :hook ((org-mode . org-modern-mode)
-         (org-agenda-finalize . org-modern-agenda)))
-
 (with-eval-after-load 'org
   (org-babel-do-load-languages
    'org-babel-load-languages
-   '((dot . t)
-     (gnuplot . t)))
+   '((dot . t)))
 
   (setq org-enforce-todo-dependencies t)
   (setq org-startup-indented t)
