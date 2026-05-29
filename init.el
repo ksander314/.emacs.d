@@ -215,6 +215,12 @@
 (let ((f (expand-file-name "~/src/carp/lisp/agent.el")))
   (when (file-exists-p f) (load-file f)))
 
+(let ((d (expand-file-name "~/src/eshboard")))
+  (when (file-directory-p d)
+    (add-to-list 'load-path d)
+    (require 'eshboard nil t)
+    (global-set-key (kbd "C-c k") #'eshboard)))
+
 (add-hook 'emacs-startup-hook
           (lambda ()
             (message "Emacs ready in %.2f seconds with %d garbage collections."
