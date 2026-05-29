@@ -37,6 +37,11 @@
   (local-set-key (kbd "C-c r") 'zig-run)
   (local-set-key (kbd "C-c t") 'zig-test-buffer))
 
+;; zig-mode registers only `(zig-mode . ("zls"))'; the buffer opens in
+;; zig-ts-mode (treesit-auto remap), so teach eglot to launch zls there too.
+(with-eval-after-load 'eglot
+  (add-to-list 'eglot-server-programs '((zig-ts-mode zig-mode) . ("zls"))))
+
 (with-eval-after-load 'eglot
   (add-hook 'eglot-managed-mode-hook #'my/zig-eglot-managed))
 
