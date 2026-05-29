@@ -42,6 +42,19 @@
 (with-eval-after-load 'eglot
   (add-to-list 'eglot-server-programs '((zig-ts-mode zig-mode) . ("zls"))))
 
+;; `compile' connects the subprocess through a pty, so `zig build' detects a
+;; terminal and renders a live progress bar: synchronized-output escapes
+;; (ESC[?2026h), DEC line-drawing charset for the step tree (ESC(0...ESC(B) and
+;; ANSI colors, none of which compilation-mode interprets -- the buffer fills
+;; with raw escape garbage. Piped, zig emits clean ASCII tree output and no
+;; escapes, so force a pipe for the zig build commands.
+(defun my/zig-compile-via-pipe (orig &rest args)
+  (let ((process-connection-type nil))
+    (apply orig args)))
+(with-eval-after-load 'zig-mode
+  (dolist (fn '(zig-compile zig-run zig-test-buffer))
+    (advice-add fn :around #'my/zig-compile-via-pipe)))
+
 (with-eval-after-load 'eglot
   (add-hook 'eglot-managed-mode-hook #'my/zig-eglot-managed))
 
