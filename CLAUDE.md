@@ -20,6 +20,7 @@ Module             Purpose
 init-utils         File utilities (my/delete-this-file, my/rename-this-file-and-buffer), C-c f opens file:line refs
 init-go            Go: eglot + gopls (staticcheck), auto-format/organize-imports on save, my/go-debug-test for dape
 init-rust          Rust: rust-mode + eglot + rust-analyzer (clippy), auto-format on save
+init-zig           Zig: zig-mode + eglot (zls, if installed), auto-format on save
 init-c++           C++: eglot + clangd (--header-insertion=never)
 init-org           Org agenda (d=dashboard, u=unplanned, i=in-progress, r=review open items), capture (t=task,
                    j=jira, p=project), clock automation, project association (my/org-set-project), meeting notes
@@ -43,7 +44,7 @@ init-focus-shield  Distraction blocking during focused work
 - Language setup functions follow the pattern `my/LANG-setup`, added via `add-hook` to both classic and `-ts-` mode hooks (e.g., `go-mode-hook` and `go-ts-mode-hook`).
 - LSP is via built-in **eglot** (not lsp-mode). Eglot keybindings are set globally in `init.el`: `C-c C-g` (definitions), `C-c C-r` (references), `C-c C-a` (code actions), `C-c C-n` (rename).
 - Completion stack: **vertico** (minibuffer) + **orderless** (matching) + **marginalia** (annotations) + **consult** (search/navigation) + **corfu** (in-buffer).
-- Tree-sitter via **treesit-auto** (`treesit-auto-install t`); grammars for go/c/cpp/rust/python/yaml/toml/json/bash are ensured via idle timer on startup.
+- Tree-sitter via **treesit-auto** (`treesit-auto-install t`); grammars for go/c/cpp/rust/zig/python/yaml/toml/json/bash are ensured via idle timer on startup.
 - Auth credentials read from `~/.authinfo` via `auth-source`.
 - External packages loaded conditionally from `~/src/`: carp/lisp/agent.el.
 - Input method: `cyrillic-dvorak-programming` (defined in `lisp/cyrillic-dvorak-programming.el`), with **reverse-im** so shortcuts work regardless of active input method.

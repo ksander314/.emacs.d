@@ -35,6 +35,7 @@
 (require 'init-org)
 (require 'init-git)
 (require 'init-rust)
+(require 'init-zig)
 (require 'init-gptel)
 (require 'init-display)
 (require 'init-eshell)
@@ -153,7 +154,7 @@
   (global-treesit-auto-mode)
   (run-with-idle-timer 2 nil
     (lambda ()
-      (dolist (lang '(go c cpp rust python yaml toml json bash))
+      (dolist (lang '(go c cpp rust zig python yaml toml json bash))
         (unless (treesit-language-available-p lang)
           (treesit-install-language-grammar lang))))))
 
