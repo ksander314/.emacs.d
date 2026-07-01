@@ -14,7 +14,31 @@
   (define-key agent-shell-mode-map (kbd "RET") #'newline)
   (define-key agent-shell-mode-map (kbd "<return>") #'newline)
   (define-key agent-shell-mode-map (kbd "M-RET") #'shell-maker-submit)
-  (define-key agent-shell-mode-map (kbd "<M-return>") #'shell-maker-submit))
+  (define-key agent-shell-mode-map (kbd "<M-return>") #'shell-maker-submit)
+  ;; Reveal the concrete model behind the ACP agent's generic
+  ;; "Default (recommended)" label so the header shows what is actually
+  ;; running (e.g. "Opus 4.8 with 1M context").  The concrete model is
+  ;; carried in each model option's :description; surface the segment
+  ;; before the " · " marketing tail.  Only the generic "default" label
+  ;; is rewritten — concrete labels like "Sonnet"/"Haiku" pass through.
+  (defun my/agent-shell-concrete-model-name (orig-fn state)
+    "Around-advice for `agent-shell-get-model-name'.
+Return the concrete model (from the option :description) when the agent
+reports the generic \"Default (recommended)\" label; otherwise defer to
+ORIG-FN for STATE."
+    (let ((name (funcall orig-fn state))
+          (model-id (agent-shell--current-model-id state)))
+      (if-let* (((or (equal model-id "default")
+                     (and name (string-match-p "recommend" name))))
+                (model (seq-find (lambda (m)
+                                   (equal (map-elt m :model-id) model-id))
+                                 (agent-shell--get-available-models state)))
+                (desc (map-elt model :description))
+                (concrete (string-trim (car (split-string desc "·")))))
+          concrete
+        name)))
+  (advice-add 'agent-shell-get-model-name :around
+              #'my/agent-shell-concrete-model-name))
 
 
 ;;; Persistent alert stack for agent-shell
