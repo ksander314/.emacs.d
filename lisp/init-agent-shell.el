@@ -4,8 +4,9 @@
   :bind ("C-c A" . agent-shell)
   :config
   ;; Effort level is read from ~/.claude/settings.json ("effortLevel": "max").
-  ;; claude-agent-acp does not accept an --effort CLI flag (it only parses
-  ;; --cli and --hide-claude-auth), so passing it here is a no-op.
+  ;; claude-agent-acp does not accept an --effort CLI flag (as of 0.54.1 it
+  ;; only parses --cli, --hide-claude-auth and --version), so passing it here
+  ;; is a no-op.
   (setq agent-shell-anthropic-claude-acp-command
         '("claude-agent-acp"))
   (unless (executable-find "claude-agent-acp")
