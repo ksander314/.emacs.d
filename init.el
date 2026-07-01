@@ -3,6 +3,9 @@
 (setq initial-scratch-message "")
 (setq visible-bell t)
 
+;; Ask before quitting — guards against accidental Cmd+Q (s-q) and C-x C-c.
+(setq confirm-kill-emacs 'y-or-n-p)
+
 (add-to-list 'load-path (expand-file-name "lisp" user-emacs-directory))
 
 ;; Package management — straight.el pins every package to a git SHA and
