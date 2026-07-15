@@ -1,7 +1,8 @@
 ;;; init-agent-shell.el --- Agent-shell configuration -*- lexical-binding: t -*-
 (use-package agent-shell
   :ensure t
-  :bind ("C-c A" . agent-shell)
+  :bind (("C-c A" . agent-shell)
+         ("C-c O" . agent-shell-opencode-start-agent))
   :config
   ;; Effort level is read from ~/.claude/settings.json ("effortLevel": "max").
   ;; claude-agent-acp does not accept an --effort CLI flag (as of 0.54.1 it
@@ -11,6 +12,16 @@
         '("claude-agent-acp"))
   (unless (executable-find "claude-agent-acp")
     (message "claude-agent-acp not found; run: npm install -g @agentclientprotocol/claude-agent-acp"))
+  ;; OpenCode ACP backend — drives a local Ollama model (Gemma 4) in
+  ;; Claude-Code style: tool calls, file edits, shell.  The concrete model is
+  ;; chosen in ~/.config/opencode/opencode.json (default:
+  ;; ollama/gemma4:31b-it-q8_0, served by the local ollama daemon on :11434).
+  ;; Local models need no API key — the default authentication is already
+  ;; (agent-shell-opencode-make-authentication :none t), so nothing to set.
+  ;; Launch with M-x agent-shell-opencode-start-agent (bound to C-c O below).
+  (setq agent-shell-opencode-acp-command '("opencode" "acp"))
+  (unless (executable-find "opencode")
+    (message "opencode not found; run: npm install -g opencode-ai"))
   ;; RET inserts newline; M-RET submits — prevents accidental sends
   (define-key agent-shell-mode-map (kbd "RET") #'newline)
   (define-key agent-shell-mode-map (kbd "<return>") #'newline)
