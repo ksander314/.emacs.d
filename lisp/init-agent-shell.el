@@ -209,4 +209,42 @@ q            dismiss all alerts"
 (add-hook 'window-buffer-change-functions #'my/agent-alert-auto-dismiss)
 (add-hook 'window-selection-change-functions #'my/agent-alert-auto-dismiss)
 
+;;; Context-usage meter for OpenCode
+;;
+;; OpenCode's ACP reports per-turn token counts but not the context window
+;; size, so agent-shell's context indicator (which needs :context-size) stays
+;; hidden for OpenCode even though it renders for Claude.  Synthesize the two
+;; missing fields from the reported input-token count and a known window size
+;; so the existing `agent-shell--context-usage-indicator' lights up.
+
+(require 'map)
+
+(defvar my/agent-shell-opencode-context-size 131072
+  "Assumed context window (tokens) for OpenCode/ollama models.
+Keep in sync with ollama's OLLAMA_CONTEXT_LENGTH.")
+
+(defun my/agent-shell-opencode-fill-context (&rest args)
+  "Populate :context-used/:context-size for OpenCode usage STATE.
+Intended as `:after' advice on `agent-shell--save-usage'.  OpenCode reports
+input/total tokens but not context size, so derive the meter's inputs and
+refresh the header to render it like Claude's.  ARGS is the advised call's
+keyword argument list."
+  (when-let* ((state (plist-get args :state))
+              ((eq (map-elt (map-elt state :agent-config) :identifier) 'opencode))
+              (usage (map-elt state :usage))
+              (used (map-elt usage :input-tokens))
+              ((> used 0)))
+    (map-put! usage :context-used used)
+    (map-put! usage :context-size my/agent-shell-opencode-context-size)
+    (map-put! state :usage usage)
+    (when-let* ((buf (map-elt state :buffer))
+                ((buffer-live-p buf))
+                ((fboundp 'agent-shell--update-header-and-mode-line)))
+      (with-current-buffer buf
+        (agent-shell--update-header-and-mode-line)))))
+
+(with-eval-after-load 'agent-shell
+  (advice-add 'agent-shell--save-usage :after
+              #'my/agent-shell-opencode-fill-context))
+
 (provide 'init-agent-shell)
