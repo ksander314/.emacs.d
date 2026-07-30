@@ -4,12 +4,21 @@
   :bind (("C-c A" . agent-shell)
          ("C-c O" . agent-shell-opencode-start-agent))
   :config
-  ;; Effort level is read from ~/.claude/settings.json ("effortLevel": "max").
-  ;; claude-agent-acp does not accept an --effort CLI flag (as of 0.54.1 it
-  ;; only parses --cli, --hide-claude-auth and --version), so passing it here
-  ;; is a no-op.
+  ;; Neither effort nor model is a CLI flag: as of claude-agent-acp 0.63.0 the
+  ;; bridge only parses --claudeai, --cli, --console and --hide-claude-auth.
+  ;; Effort comes from ~/.claude/settings.json ("effortLevel": "xhigh"); the
+  ;; model comes from ANTHROPIC_MODEL below.
   (setq agent-shell-anthropic-claude-acp-command
         '("claude-agent-acp"))
+  ;; Pin the model.  claude-agent-acp resolves it as ANTHROPIC_MODEL >
+  ;; settings.json "model" > resumed session > models[0]; unpinned it lands on
+  ;; models[0] ("Default"), which follows whatever the bundled
+  ;; @anthropic-ai/claude-agent-sdk treats as default.  Setting it here rather
+  ;; than in settings.json leaves the terminal CLI on its own default.
+  ;; acp.el prepends these onto `process-environment', so PATH still resolves.
+  (setq agent-shell-anthropic-claude-environment
+        (agent-shell-make-environment-variables
+         "ANTHROPIC_MODEL" "claude-opus-5"))
   (unless (executable-find "claude-agent-acp")
     (message "claude-agent-acp not found; run: npm install -g @agentclientprotocol/claude-agent-acp"))
   ;; OpenCode ACP backend — drives a local Ollama model (Gemma 4) in
