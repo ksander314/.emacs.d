@@ -36,26 +36,28 @@
   (define-key agent-shell-mode-map (kbd "<return>") #'newline)
   (define-key agent-shell-mode-map (kbd "M-RET") #'shell-maker-submit)
   (define-key agent-shell-mode-map (kbd "<M-return>") #'shell-maker-submit)
-  ;; Reveal the concrete model behind the ACP agent's generic
-  ;; "Default (recommended)" label so the header shows what is actually
-  ;; running (e.g. "Opus 4.8 with 1M context").  The concrete model is
-  ;; carried in each model option's :description; surface the segment
-  ;; before the " · " marketing tail.  Only the generic "default" label
-  ;; is rewritten — concrete labels like "Sonnet"/"Haiku" pass through.
+  ;; Reveal the concrete model in the header.  No option's :name carries a
+  ;; version -- they read "Default (recommended)", "Opus (1M context)",
+  ;; "Sonnet", "Haiku" -- while every :description leads with the real one
+  ;; ("Opus 5 with 1M context", "Sonnet 5", "Haiku 4.5") before a " · "
+  ;; marketing tail.  So prefer the description's head for every option, not
+  ;; just the generic "default": gating on "default" broke the moment
+  ;; ANTHROPIC_MODEL pinned a concrete id (model-id became "opus[1m]", whose
+  ;; :name is likewise version-less).  Falls back to :name when an option
+  ;; carries no description.
   (defun my/agent-shell-concrete-model-name (orig-fn state)
     "Around-advice for `agent-shell-get-model-name'.
-Return the concrete model (from the option :description) when the agent
-reports the generic \"Default (recommended)\" label; otherwise defer to
-ORIG-FN for STATE."
+Return the concrete model taken from the current option's :description
+\(the segment before \" · \"), falling back to ORIG-FN's name for STATE
+when no description is advertised."
     (let ((name (funcall orig-fn state))
           (model-id (agent-shell--current-model-id state)))
-      (if-let* (((or (equal model-id "default")
-                     (and name (string-match-p "recommend" name))))
-                (model (seq-find (lambda (m)
+      (if-let* ((model (seq-find (lambda (m)
                                    (equal (map-elt m :model-id) model-id))
                                  (agent-shell--get-available-models state)))
                 (desc (map-elt model :description))
-                (concrete (string-trim (car (split-string desc "·")))))
+                (concrete (string-trim (car (split-string desc "·"))))
+                ((not (string-empty-p concrete))))
           concrete
         name)))
   (advice-add 'agent-shell-get-model-name :around
