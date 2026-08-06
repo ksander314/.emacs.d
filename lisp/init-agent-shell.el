@@ -249,4 +249,85 @@ keyword argument list."
   (advice-add 'agent-shell--save-usage :after
               #'my/agent-shell-opencode-fill-context))
 
+;;; Keep macOS awake while the agent is working
+;;
+;; In the terminal Claude runs as `caffeinate claude', so the CLI holds a
+;; no-sleep assertion for its whole life and keeps working behind a locked
+;; screen.  agent-shell offers the same wrapping point --
+;; `agent-shell-command-prefix' is prepended to the ACP command -- but Emacs
+;; outlives any single turn, so a static prefix would forbid sleep for as
+;; long as a shell buffer exists, and would also wrap every tool-call shell
+;; command (see `agent-shell--build-command-for-execution').  Hold the
+;; assertion only while a turn is in flight instead: acquire on
+;; `input-submitted', release once no shell is busy.  A pending permission
+;; counts as idle -- nothing progresses until the human answers -- and
+;; `permission-response' re-acquires for the rest of the turn.
+
+(defvar my/agent-caffeinate--process nil
+  "Live `caffeinate' process holding the no-sleep assertion, or nil.")
+
+(defvar my/agent-caffeinate-timeout 14400
+  "Seconds after which the `caffeinate' assertion expires on its own.
+Backstop for a turn that never reports completion, or for an Emacs that
+dies without reaping its children: a leaked assertion would otherwise
+keep the machine awake indefinitely.  A turn longer than this loses the
+assertion mid-flight.")
+
+(defun my/agent-caffeinate--acquire (&optional _event)
+  "Hold a no-sleep assertion for the duration of an agent turn.
+No-op when one is already held.  Ignores its EVENT argument so it can
+serve directly as an `agent-shell-subscribe-to' handler."
+  (when (and (eq system-type 'darwin)
+             (not (process-live-p my/agent-caffeinate--process))
+             (executable-find "caffeinate"))
+    ;; -i: no idle sleep -- what bare `caffeinate' asserts, and the one that
+    ;; matters behind a locked screen.  -s: no system sleep, honoured on AC
+    ;; power only, which is what survives a closed lid.  -m: no disk idle
+    ;; sleep.  Deliberately no -d: the display may still sleep.
+    (setq my/agent-caffeinate--process
+          (make-process
+           :name "agent-caffeinate"
+           :command (list "caffeinate" "-i" "-s" "-m"
+                          "-t" (number-to-string my/agent-caffeinate-timeout))
+           :noquery t))))
+
+(defun my/agent-caffeinate--release ()
+  "Drop the no-sleep assertion, if held.
+macOS reclaims the assertion as soon as the owning process dies, so
+killing `caffeinate' is enough."
+  (when (process-live-p my/agent-caffeinate--process)
+    (delete-process my/agent-caffeinate--process))
+  (setq my/agent-caffeinate--process nil))
+
+(defun my/agent-caffeinate--release-when-idle (&optional _event)
+  "Drop the assertion unless another agent-shell is still mid-turn.
+Skips the buffer this event came from: its turn is over (or its buffer is
+being killed), yet `shell-maker-busy' may not say so yet -- and a stuck
+assertion is worse than an early release."
+  (let ((origin (current-buffer)))
+    (unless (seq-some
+             (lambda (buf)
+               (and (not (eq buf origin))
+                    (with-current-buffer buf
+                      (and (derived-mode-p 'agent-shell-mode)
+                           (eq (ignore-errors (agent-shell-status)) 'busy)))))
+             (buffer-list))
+      (my/agent-caffeinate--release))))
+
+(defun my/agent-caffeinate-subscribe ()
+  "Tie the no-sleep assertion to turn boundaries in the current buffer.
+Both handlers are idempotent, so a re-run of `agent-shell-mode' needs no
+unsubscribe bookkeeping."
+  (dolist (event '(input-submitted permission-response))
+    (agent-shell-subscribe-to :shell-buffer (current-buffer)
+                              :event event
+                              :on-event #'my/agent-caffeinate--acquire))
+  (dolist (event '(turn-complete permission-request error clean-up))
+    (agent-shell-subscribe-to :shell-buffer (current-buffer)
+                              :event event
+                              :on-event #'my/agent-caffeinate--release-when-idle)))
+
+(add-hook 'agent-shell-mode-hook #'my/agent-caffeinate-subscribe)
+(add-hook 'kill-emacs-hook #'my/agent-caffeinate--release)
+
 (provide 'init-agent-shell)
