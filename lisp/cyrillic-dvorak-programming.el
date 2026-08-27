@@ -1,3 +1,4 @@
+;;; cyrillic-dvorak-programming.el --- Cyrillic ЙЦУКЕН input for dvorak-programming -*- lexical-binding: t -*-
 ;;;; $Id: cyrillic-dvorak-programming.el,v 0.1 2013/11/07 07:06:31 ksander314 Exp $
 ;;;; $Author: ksander314 $
 ;;;; Distributed under the GPL
