@@ -64,6 +64,98 @@ when no description is advertised."
               #'my/agent-shell-concrete-model-name))
 
 
+;;; Stop the graphical header from cutting its own text off
+;;
+;; The header is an SVG whose canvas is cropped to the width agent-shell
+;; predicts the text needs: `agent-shell--render-header-model-uncached' shrinks
+;; it to `agent-shell--svg-content-width' + 16.  The prediction comes from
+;; `string-pixel-width' (Emacs' font backend); the drawing is done by librsvg,
+;; which resolves fonts through fontconfig and FreeType.  On this machine the
+;; two disagree badly and the canvas lands at roughly half the width the text
+;; occupies, so the top line stopped mid-word:
+;;
+;;   Claude ➤ Opus 5 with 1M context ➤ Max ➤ Byp
+;;
+;; Cause: the only Inconsolata installed is the Google Fonts variable file
+;; ~/Library/Fonts/Inconsolata[wdth,wght].ttf.  Emacs instantiates it at the
+;; default width axis (wdth=100, advance 0.5em -> 9px at 18px), while pango
+;; collapses the named instances to two buckets and picks wdth=200 (advance
+;; ~1em -> 18px).  Ten "M" at font-size 18 measure 90px in Emacs and 179px in
+;; librsvg -- and the wide instance is also why the header text looked
+;; loosely spaced next to the buffer's own Inconsolata.
+;;
+;; Two changes, both needed.  Declaring a non-variable family alone would
+;; still under-predict (Emacs would keep measuring in Inconsolata's 9px cell
+;; while librsvg drew Menlo's 10.8px one); measuring in the declared family
+;; alone would faithfully predict the wrong 9px, since Emacs has no way to
+;; render the wdth=200 instance pango picks.
+
+(defvar my/agent-shell-header-font-family "Menlo"
+  "Font family declared in the agent-shell header SVG, or nil to keep the default.
+Must be a family librsvg and Emacs measure alike: ten \"M\" at font-size
+18 come to 108px under librsvg and 110px under Emacs for Menlo, against
+179 vs 90 for Inconsolata.  Erring high is the safe direction -- the
+canvas ends up a little wider than the text rather than cropping it.")
+
+(defvar my/agent-shell--measure-buffers nil
+  "Alist mapping (FAMILY . SIZE) to a buffer used for pixel measurement.
+Buffers are reused: `string-pixel-width' consults the buffer's
+`face-remapping-alist', so one throwaway buffer per font is enough.")
+
+(defun my/agent-shell--measure-buffer (family size)
+  "Return a buffer whose default face is FAMILY at pixel SIZE.
+Returns nil when FAMILY is not installed, so callers fall back to
+measuring in the current buffer."
+  (when (and (stringp family) (find-font (font-spec :family family)))
+    (let* ((size (if (numberp size) (truncate size) (frame-char-height)))
+           (key (cons family size))
+           (buf (alist-get key my/agent-shell--measure-buffers nil nil #'equal)))
+      (unless (buffer-live-p buf)
+        (setq buf (generate-new-buffer
+                   (format " *agent-shell-measure %s %d*" family size) t))
+        (with-current-buffer buf
+          (setq-local face-remapping-alist
+                      `((default (:font ,(font-spec :family family :size size))))))
+        (setf (alist-get key my/agent-shell--measure-buffers nil nil #'equal) buf))
+      buf)))
+
+(defun my/agent-shell--svg-text-width (node)
+  "Return the pixel width of SVG text NODE, measured in NODE's own font.
+Override for `agent-shell--svg-text-width', which measures with the
+current buffer's default face.  The header SVG names its font family and
+pixel size on the `text' node, so honour those instead: the point of the
+measurement is to predict what librsvg will draw, and librsvg draws in
+the declared font, not in whatever face the calling buffer happens to
+carry.  Falls back to the buffer's face when the family is unavailable."
+  (let ((buf (my/agent-shell--measure-buffer (dom-attr node 'font-family)
+                                             (dom-attr node 'font-size))))
+    (seq-reduce (lambda (total child)
+                  (if (and (consp child) (eq (dom-tag child) 'tspan))
+                      (+ total
+                         (string-to-number (format "%s" (or (dom-attr child 'dx) 0)))
+                         (string-pixel-width (or (car (dom-children child)) "") buf))
+                    total))
+                (dom-children node)
+                0)))
+
+(defun my/agent-shell--header-font-family (model)
+  "Declare `my/agent-shell-header-font-family' in header MODEL.
+Filter-return advice for `agent-shell--make-header-model'.  MODEL's
+`:font-family' otherwise follows the default face, which here is a
+variable font librsvg renders at twice Emacs' advance width."
+  (when (and (consp model)
+             my/agent-shell-header-font-family
+             (find-font (font-spec :family my/agent-shell-header-font-family)))
+    (setf (alist-get :font-family model) my/agent-shell-header-font-family))
+  model)
+
+(with-eval-after-load 'agent-shell
+  (advice-add 'agent-shell--svg-text-width :override
+              #'my/agent-shell--svg-text-width)
+  (advice-add 'agent-shell--make-header-model :filter-return
+              #'my/agent-shell--header-font-family))
+
+
 ;;; Persistent alert stack for agent-shell
 
 (defvar my/agent-alerts nil
