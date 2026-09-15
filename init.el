@@ -46,6 +46,7 @@
 (require 'init-keystroke-log)
 (require 'init-focus-shield)
 (require 'init-kube)
+(require 'init-tatr)
 (global-set-key (kbd "C-c z") #'my/focus-freeze)
 (global-set-key (kbd "C-c Z") #'my/focus-thaw)
 

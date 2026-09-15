@@ -35,6 +35,10 @@ init-eshell        Custom prompt, per-command history append, C-c C-r for consul
 init-keystroke-log Records keystrokes to keystroke-log.csv; my/klog-typo-report, my/klog-char-freq-report,
                    my/klog-bigram-speed-report for analysis
 init-focus-shield  Distraction blocking during focused work
+init-tatr          tatr task tracker over tasks/<HUID>/TASK.md folders. C-c n is the prefix: n new task,
+                   t turn the TODO under point into one, f find by HUID, r referers, y copy the HUID.
+                   tatr.el itself is vendored from rexim's dotfiles and kept unmodified, so local
+                   defaults and keys go in init-tatr.el and a refresh is a plain overwrite
 ```
 
 ## Key conventions
