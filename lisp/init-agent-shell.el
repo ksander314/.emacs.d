@@ -4,7 +4,7 @@
   :bind (("C-c A" . agent-shell)
          ("C-c O" . agent-shell-opencode-start-agent))
   :config
-  ;; Neither effort nor model is a CLI flag: as of claude-agent-acp 0.63.0 the
+  ;; Neither effort nor model is a CLI flag: as of claude-agent-acp 0.82.0 the
   ;; bridge only parses --claudeai, --cli, --console and --hide-claude-auth.
   ;; Effort comes from ~/.claude/settings.json ("effortLevel": "xhigh"); the
   ;; model comes from ANTHROPIC_MODEL below.
@@ -16,9 +16,16 @@
   ;; @anthropic-ai/claude-agent-sdk treats as default.  Setting it here rather
   ;; than in settings.json leaves the terminal CLI on its own default.
   ;; acp.el prepends these onto `process-environment', so PATH still resolves.
+  ;;
+  ;; The value is the concrete id, not the picker alias.  The bridge's model
+  ;; list carries no bare `claude-opus-5-5' entry -- the picker exposes
+  ;; `opus[1m]', whose :name is "Opus 5.5" -- but `resolveModelPreference'
+  ;; matches the pin against each entry's resolvedModel, so `claude-opus-5-5'
+  ;; lands on that same 1M-context entry.  Pinning `opus[1m]' directly would
+  ;; work today and silently follow the alias onto the next Opus release.
   (setq agent-shell-anthropic-claude-environment
         (agent-shell-make-environment-variables
-         "ANTHROPIC_MODEL" "claude-opus-5"))
+         "ANTHROPIC_MODEL" "claude-opus-5-5"))
   (unless (executable-find "claude-agent-acp")
     (message "claude-agent-acp not found; run: npm install -g @agentclientprotocol/claude-agent-acp"))
   ;; OpenCode ACP backend — drives a local Ollama model (Gemma 4) in
