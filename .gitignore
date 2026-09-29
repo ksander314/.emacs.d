@@ -23,7 +23,6 @@ tramp
 transient/
 tree-sitter/
 .claude/
-.claude-code-mcp.log
 /.agent-shell/
 /agent/
 /history
