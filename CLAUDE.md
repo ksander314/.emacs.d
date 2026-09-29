@@ -17,7 +17,8 @@ To test a change without restarting Emacs: `M-x eval-buffer` (current file) or `
 ```
 Module             Purpose
 ──────────────────────────────────────────────────────────────────────────────
-init-utils         File utilities (my/delete-this-file, my/rename-this-file-and-buffer), C-c f opens file:line refs
+init-utils         File utilities (my/delete-this-file, my/rename-this-file-and-buffer, my/browse-current-file),
+                   C-c f opens file:line refs, my/straight-pending-updates previews package upgrades
 init-go            Go: eglot + gopls (staticcheck), auto-format/organize-imports on save, my/go-debug-test for dape
 init-rust          Rust: rust-mode + eglot + rust-analyzer (clippy), auto-format on save
 init-zig           Zig: zig-mode + eglot (zls, if installed), auto-format on save
@@ -29,12 +30,18 @@ init-org           Org agenda (d=dashboard, u=unplanned, i=in-progress, r=review
                    log with auto-resolve (C-c !), timesheet (C-c T), energy tracker (C-c E)
 init-git           magit (C-c g g), diff-hl
 init-gptel         gptel with OpenAI + Gemini backends; system prompt tuned for Go backend engineering
-init-agent-shell   agent-shell (C-c A) + persistent alert stack
+init-agent-shell   agent-shell (C-c A; C-c O for OpenCode) + persistent alert stack; holds a macOS no-sleep
+                   assertion (caffeinate) while a turn runs
 init-display       Relative line numbers, trailing whitespace highlighting
 init-eshell        Custom prompt, per-command history append, C-c C-r for consult-history
 init-keystroke-log Records keystrokes to keystroke-log.csv; my/klog-typo-report, my/klog-char-freq-report,
-                   my/klog-bigram-speed-report for analysis
-init-focus-shield  Distraction blocking during focused work
+                   my/klog-bigram-speed-report, my/klog-chord-freq-report, my/klog-mode-distribution-report,
+                   my/klog-layout-distribution-report for analysis
+init-focus-shield  Interruption shield: C-c z saves window layout and point and pauses the clocked task,
+                   C-c Z restores them and resumes it; interruptions are logged to ~/src/org/interruptions.org,
+                   my/focus-report shows the stats
+init-kube          TRAMP method /kube:NAMESPACE.CONTEXT@POD:/path over kubectl exec (bin/kube-tramp);
+                   my/kube-find-file picks context, namespace and pod, then a file on it
 init-tatr          tatr task tracker over tasks/<HUID>/TASK.md folders. C-c n is the prefix: n new task,
                    t turn the TODO under point into one, f find by HUID, r referers, y copy the HUID.
                    tatr.el itself is vendored from rexim's dotfiles and kept unmodified, so local
@@ -50,5 +57,5 @@ init-tatr          tatr task tracker over tasks/<HUID>/TASK.md folders. C-c n is
 - Completion stack: **vertico** (minibuffer) + **orderless** (matching) + **marginalia** (annotations) + **consult** (search/navigation) + **corfu** (in-buffer).
 - Tree-sitter via **treesit-auto** (`treesit-auto-install t`); grammars for go/c/cpp/rust/zig/python/yaml/toml/json/bash are ensured via idle timer on startup.
 - Auth credentials read from `~/.authinfo` via `auth-source`.
-- External packages loaded conditionally from `~/src/`: carp/lisp/agent.el.
+- External packages loaded conditionally from `~/src/`: carp/lisp/agent.el, eshboard (on `C-c k`).
 - Input method: `cyrillic-dvorak-programming` (defined in `lisp/cyrillic-dvorak-programming.el`), with **reverse-im** so shortcuts work regardless of active input method.
