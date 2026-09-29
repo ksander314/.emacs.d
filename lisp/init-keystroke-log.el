@@ -155,17 +155,21 @@
 
 (defun my/klog--parse-csv-line (line)
   "Split LINE into fields, respecting quoted values containing commas."
-  (let ((fields nil) (start 0) (i 0) (in-quote nil) (len (length line)))
-    (while (< i len)
-      (let ((c (aref line i)))
-        (cond ((and (not in-quote) (eq c ?,))
-               (push (substring line start i) fields)
-               (setq start (1+ i)))
-              ((eq c ?\")
-               (setq in-quote (not in-quote)))))
-      (setq i (1+ i)))
-    (push (substring line start) fields)
-    (nreverse fields)))
+  (if (not (string-search "\"" line))
+      ;; Few rows quote a cell; the rest skip the per-char loop, which runs
+      ;; interpreted because lisp/ is never byte-compiled.
+      (split-string line ",")
+    (let ((fields nil) (start 0) (i 0) (in-quote nil) (len (length line)))
+      (while (< i len)
+        (let ((c (aref line i)))
+          (cond ((and (not in-quote) (eq c ?,))
+                 (push (substring line start i) fields)
+                 (setq start (1+ i)))
+                ((eq c ?\")
+                 (setq in-quote (not in-quote)))))
+        (setq i (1+ i)))
+      (push (substring line start) fields)
+      (nreverse fields))))
 
 (defun my/klog--read-csv ()
   "Read log CSV into list of records.  Tolerates 5+ field rows for back-compat."
