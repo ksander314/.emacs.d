@@ -72,7 +72,8 @@
   (define-key org-mode-map (kbd "C-c p") #'my/org-pause)
   (define-key org-mode-map (kbd "C-c l") #'my/org-link-task)
   (define-key org-mode-map (kbd "C-c P") #'my/org-pomodoro)
-  (define-key org-mode-map (kbd "C-c A") #'my/org-archive-done))
+  ;; Not C-c A: that is agent-shell everywhere, org buffers included.
+  (define-key org-mode-map (kbd "C-c X") #'my/org-archive-done))
 
 (with-eval-after-load 'org-agenda
   (define-key org-agenda-mode-map (kbd "C-c r") #'my/org-agenda-refile-to-today)

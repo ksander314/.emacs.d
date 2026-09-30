@@ -25,7 +25,7 @@ init-zig           Zig: zig-mode + eglot (zls, if installed), auto-format on sav
 init-c++           C++: eglot + clangd (--header-insertion=never)
 init-org           Org agenda (d=dashboard, u=unplanned, i=in-progress, r=review open items), capture (t=task,
                    j=jira, p=project), clock automation, project association (my/org-set-project), meeting notes
-                   (C-c m), archive with :Project: prompt (C-c A), pomodoro (C-c P), weekly review (C-c w),
+                   (C-c m), archive with :Project: prompt (C-c X), pomodoro (C-c P), weekly review (C-c w),
                    standup, code review journal (C-c R), decision log (C-c D), 1-on-1 notes (C-c 1), incident
                    log with auto-resolve (C-c !), timesheet (C-c T), energy tracker (C-c E)
 init-git           magit (C-c g g), diff-hl

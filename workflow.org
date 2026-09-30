@@ -173,7 +173,10 @@
     ┌───────────────────────────▼───────────────────────────┐
     │                     КОНЕЦ ДНЯ                          │
     │                                                        │
-    │  C-c A  (на heading дня) → архивация DONE/CANCELED    │
+    │  C-c a d → «Выполнено сегодня»: что закрыто сегодня   │
+    │  (DONE/CANCELED) и [H:MM] всего по clock у каждой     │
+    │                                                       │
+    │  C-c X  (на heading дня) → архивация DONE/CANCELED    │
     │  → work.org_archive::datetree/                        │
     │                                                        │
     │  Выход из Emacs после 17:00                           │
@@ -226,7 +229,7 @@
 | C-c P     | Pomodoro 25 мин (clock + таймер)  |
 | C-c r     | Refile в сегодня (work.org)       |
 | C-c l     | Привязать JIRA / GitHub / GitLab  |
-| C-c A     | Архивация DONE/CANCELED           |
+| C-c X     | Архивация DONE/CANCELED           |
 | C-c C-w   | Refile с выбором (work / projects) |
 | C-c C-t   | Выбор статуса: t/s/p/d/c          |
 | C-c C-x e | Установить effort (оценка)        |
@@ -250,6 +253,7 @@
 | org-modern  | стильные заголовки, теги как badges  |
 | habit       | consistency graph в agenda           |
 | прогресс    | ▓████░░░░░░▓ HH:MM / 8:00 в header  |
+| [H:MM]      | время по clock в «Выполнено сегодня» |
 
 * Типичный день
 
@@ -269,5 +273,6 @@
 14. =C-c E= → залогировал энергию (3/5 после обеда)
 15. =C-c i= на следующей задаче → clock вернулся
 16. Пятница: =C-c w= → weekly review → скопировал в Slack
-17. Вечер: =C-c A= на heading дня → архивация DONE/CANCELED
-18. Закрыл Emacs → "Конец дня. Показать итоги?" → да → итоги
+17. Вечер: =C-c a d= → «Выполнено сегодня»: что закрыто и сколько ушло по clock
+18. =C-c X= на heading дня → архивация DONE/CANCELED
+19. Закрыл Emacs → "Конец дня. Показать итоги?" → да → итоги
