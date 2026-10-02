@@ -10,6 +10,8 @@
 (defvar my/klog--layout nil)
 (defvar my/klog--layout-timer nil)
 (defvar my/klog--layout-refresh-interval 5)
+(defvar my/klog--layout-pushed nil
+  "Non-nil once Hammerspoon has pushed the layout; polling then stops.")
 
 (defconst my/klog-header
   "timestamp_ms,event,key,prev_key,interval_ms,command,major_mode,layout,input_method\n")
@@ -28,13 +30,22 @@
     focus-in focus-out
     help-echo))
 
+(defun my/klog-set-layout (name)
+  "Set the macOS layout NAME (e.g. \"ABC\", \"RussianWin\").
+Called by ~/.hammerspoon/init.lua on every input source switch.  The
+idle-timer poll below only refreshes after a pause in typing, so rows
+typed right after a switch used to carry the previous layout."
+  (setq my/klog--layout name
+        my/klog--layout-pushed t))
+
 (defun my/klog--refresh-layout ()
-  "Refresh cached macOS keyboard layout name."
-  (condition-case nil
-      (let ((s (shell-command-to-string
-                "defaults read com.apple.HIToolbox AppleSelectedInputSources 2>/dev/null | awk -F '= ' '/KeyboardLayout Name/ {gsub(/[\";]/, \"\", $2); gsub(/^[ \\t]+|[ \\t]+$/, \"\", $2); print $2; exit}'")))
-        (setq my/klog--layout (string-trim s)))
-    (error nil)))
+  "Refresh cached macOS keyboard layout name, unless Hammerspoon pushes it."
+  (unless my/klog--layout-pushed
+    (condition-case nil
+        (let ((s (shell-command-to-string
+                  "defaults read com.apple.HIToolbox AppleSelectedInputSources 2>/dev/null | awk -F '= ' '/KeyboardLayout Name/ {gsub(/[\";]/, \"\", $2); gsub(/^[ \\t]+|[ \\t]+$/, \"\", $2); print $2; exit}'")))
+          (setq my/klog--layout (string-trim s)))
+      (error nil))))
 
 (defun my/klog--migrate-old-file ()
   "If existing CSV uses old schema, rotate it aside so we start fresh."
