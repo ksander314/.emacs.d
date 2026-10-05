@@ -46,6 +46,15 @@ init-tatr          tatr task tracker over tasks/<HUID>/TASK.md folders. C-c n is
                    t turn the TODO under point into one, f find by HUID, r referers, y copy the HUID.
                    tatr.el itself is vendored from rexim's dotfiles and kept unmodified, so local
                    defaults and keys go in init-tatr.el and a refresh is a plain overwrite
+init-jira          Jira over jira.el, token from ~/.authinfo. C-c j: my/jira-dashboard, two lists — assigned
+                   to me, waiting for my review (Reviewers = customfield_10093) — leaf issues only, ordered by
+                   board column (my/jira-board-columns, hand-kept) then priority, with a time bar and, for
+                   reviews, a count of returns. a (in both, in C-c J and in an issue card): my/jira-agent-shell,
+                   a fresh Claude agent-shell in ~/src/backend-dashboard (C-u: pick the directory) with the
+                   issue's key, summary and link waiting in the prompt; one shell per issue, a second a returns
+                   to it. C-c J: jira.el's team list; its filter is a transient saved
+                   value in transient/values.el (gitignored), set from the menu: l, C-x C-s.
+                   my/jira-issues-clear-loading-flag clears jira.el's stuck in-flight flag on every refresh
 ```
 
 ## Key conventions

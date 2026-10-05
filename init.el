@@ -47,6 +47,7 @@
 (require 'init-focus-shield)
 (require 'init-kube)
 (require 'init-tatr)
+(require 'init-jira)
 (global-set-key (kbd "C-c z") #'my/focus-freeze)
 (global-set-key (kbd "C-c Z") #'my/focus-thaw)
 
