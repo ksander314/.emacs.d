@@ -30,6 +30,17 @@
     focus-in focus-out
     help-echo))
 
+(defconst my/klog--noise-basic-types
+  '(mouse-1 mouse-2 mouse-3 mouse-4 mouse-5 mouse-6 mouse-7 mouse-8 mouse-9
+    wheel-up wheel-down wheel-left wheel-right mouse-movement
+    ;; Prefixes of clicks outside the text: [mode-line mouse-1] and the like.
+    mode-line header-line tab-line vertical-line menu-bar tool-bar tab-bar
+    vertical-scroll-bar horizontal-scroll-bar
+    left-fringe right-fringe left-margin right-margin)
+  "Basic types (`event-basic-type') of events that do not come from typing.
+Matching on the basic type also catches every variant the list above
+misses: double-down-mouse-1, S-wheel-right, C-mouse-1 and so on.")
+
 (defun my/klog-set-layout (name)
   "Set the macOS layout NAME (e.g. \"ABC\", \"RussianWin\").
 Called by ~/.hammerspoon/init.lua on every input source switch.  The
@@ -96,7 +107,17 @@ typed right after a switch used to carry the previous layout."
         (cond
          ((symbolp ev) (memq ev my/klog--noise-event-syms))
          ((consp ev) (memq (car-safe ev) my/klog--noise-event-syms))
-         (t nil)))))
+         (t nil)))
+      ;; Any event of the sequence, not just the first; ignore-errors because
+      ;; an error here would drop my/klog-record from post-command-hook.
+      (ignore-errors
+        (catch 'noise
+          (mapc (lambda (ev)
+                  (when (or (memq (event-basic-type ev) my/klog--noise-basic-types)
+                            (and (symbolp ev) (string-prefix-p "ns-" (symbol-name ev))))
+                    (throw 'noise t)))
+                keys)
+          nil))))
 
 (defun my/klog-record ()
   (when (and this-command
