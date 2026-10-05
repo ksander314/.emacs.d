@@ -47,7 +47,8 @@ init-tatr          tatr task tracker over tasks/<HUID>/TASK.md folders. C-c n is
                    tatr.el itself is vendored from rexim's dotfiles and kept unmodified, so local
                    defaults and keys go in init-tatr.el and a refresh is a plain overwrite
 init-jira          Jira over jira.el; the site address and the token both come from the *.atlassian.net
-                   machine in ~/.authinfo, so no address is in git. C-c j: my/jira-dashboard, two lists — assigned
+                   machine in ~/.authinfo, so no address is in git; without that machine (home) jira.el is not
+                   installed and no key is bound. C-c j: my/jira-dashboard, two lists — assigned
                    to me, waiting for my review (Reviewers = customfield_10093) — leaf issues only, ordered by
                    board column (my/jira-board-columns, hand-kept) then priority, with a time bar and, for
                    reviews, a count of returns. a (in both, in C-c J and in an issue card): my/jira-agent-shell,
