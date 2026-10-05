@@ -5,6 +5,20 @@
 ;; saved value, kept in ~/.emacs.d/transient/values.el (not in git): change it
 ;; from the menu with l, then save with C-x C-s.
 
+(defun my/jira-url-from-authinfo ()
+  "\"https://\" and the *.atlassian.net machine of ~/.authinfo, or \"\".
+The token's line already names the site, so the address stays out of this
+repository.  No trailing slash: jira.el strips \"https://\" and looks the
+rest up as that same machine to find the token."
+  (require 'seq)
+  (if-let* ((host (seq-find (lambda (host)
+                              (and (stringp host) (string-suffix-p ".atlassian.net" host)))
+                            (mapcar (lambda (entry) (plist-get entry :host))
+                                    (auth-source-search :host t :max 100)))))
+      (concat "https://" host)
+    (message "init-jira: no *.atlassian.net machine in ~/.authinfo, so no Jira address")
+    ""))
+
 ;; :custom, not :config: C-c J autoloads `jira-issues' from jira-issues.el,
 ;; which never loads jira.el, so a :config block would never run and every
 ;; request would go to an empty URL with empty credentials.
@@ -12,9 +26,7 @@
   :bind (("C-c J" . jira-issues))
   :hook (jira-issues-mode . hl-line-mode)
   :custom
-  ;; No trailing slash: jira.el strips "https://" and looks the rest up as the
-  ;; machine in ~/.authinfo.
-  (jira-base-url "https://tradingview-air.atlassian.net")
+  (jira-base-url (my/jira-url-from-authinfo))
   ;; A sprint without other people's subtasks is ~50 issues; the default page
   ;; of 30 would split it in two.
   (jira-issues-max-results 100)
