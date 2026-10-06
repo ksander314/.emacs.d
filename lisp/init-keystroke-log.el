@@ -169,10 +169,13 @@ typed right after a switch used to carry the previous layout."
   (setq my/klog-timer
         (run-with-timer my/klog-flush-interval my/klog-flush-interval
                         #'my/klog-flush))
-  (setq my/klog--layout-timer
-        (run-with-idle-timer my/klog--layout-refresh-interval t
-                             #'my/klog--refresh-layout))
-  (run-with-idle-timer 1 nil #'my/klog--refresh-layout)
+  ;; The poll asks macOS `defaults'.  Elsewhere the layout column stays
+  ;; empty and ~/src/kbdtr/kb takes the layout from the letters.
+  (when (eq system-type 'darwin)
+    (setq my/klog--layout-timer
+          (run-with-idle-timer my/klog--layout-refresh-interval t
+                               #'my/klog--refresh-layout))
+    (run-with-idle-timer 1 nil #'my/klog--refresh-layout))
   (message "Keystroke logging started"))
 
 (defun my/klog-stop ()
