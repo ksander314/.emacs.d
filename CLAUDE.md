@@ -36,7 +36,8 @@ init-display       Relative line numbers, trailing whitespace highlighting
 init-eshell        Custom prompt, per-command history append, C-c C-r for consult-history
 init-keystroke-log Records keystrokes to keystroke-log.csv; my/klog-typo-report, my/klog-char-freq-report,
                    my/klog-bigram-speed-report, my/klog-chord-freq-report, my/klog-mode-distribution-report,
-                   my/klog-layout-distribution-report for analysis
+                   my/klog-layout-distribution-report for analysis. An input source switch that Hammerspoon
+                   pushes (my/klog-set-layout, macOS only) is a row of its own, event "layout"
 init-focus-shield  Interruption shield: C-c z saves window layout and point and pauses the clocked task,
                    C-c Z restores them and resumes it; interruptions are logged to ~/src/org/interruptions.org,
                    my/focus-report shows the stats

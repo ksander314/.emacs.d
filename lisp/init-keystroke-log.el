@@ -45,9 +45,30 @@ misses: double-down-mouse-1, S-wheel-right, C-mouse-1 and so on.")
   "Set the macOS layout NAME (e.g. \"ABC\", \"RussianWin\").
 Called by ~/.hammerspoon/init.lua on every input source switch.  The
 idle-timer poll below only refreshes after a pause in typing, so rows
-typed right after a switch used to carry the previous layout."
-  (setq my/klog--layout name
-        my/klog--layout-pushed t))
+typed right after a switch used to carry the previous layout.
+A change is also logged as a row of its own, see `my/klog--log-switch'."
+  (let ((old my/klog--layout))
+    (setq my/klog--layout name
+          my/klog--layout-pushed t)
+    (when (and old (not (equal name old)))
+      (with-demoted-errors "klog: %S"
+        (my/klog--log-switch old name)))))
+
+(defun my/klog--log-switch (old new)
+  "Log a switch of the input source from OLD to NEW: event \"layout\", key NEW,
+prev_key OLD, interval since the last key.  It leaves `my/klog-last-time'
+alone, so the intervals between keys stay what they were."
+  (my/klog-init-buffer)
+  (let ((now (float-time)))
+    (with-current-buffer my/klog-buffer
+      (goto-char (point-max))
+      (insert (format "%d,layout,%s,%s,%d,,%s,%s,\n"
+                      (truncate (* now 1000))
+                      (my/klog--csv-sanitize new)
+                      (my/klog--csv-sanitize old)
+                      (if my/klog-last-time (truncate (* (- now my/klog-last-time) 1000)) -1)
+                      (buffer-local-value 'major-mode (window-buffer (selected-window)))
+                      (my/klog--csv-sanitize new))))))
 
 (defun my/klog--refresh-layout ()
   "Refresh cached macOS keyboard layout name, unless Hammerspoon pushes it."
