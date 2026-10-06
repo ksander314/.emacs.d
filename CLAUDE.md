@@ -68,5 +68,5 @@ init-jira          Jira over jira.el; the site address and the token both come f
 - Completion stack: **vertico** (minibuffer) + **orderless** (matching) + **marginalia** (annotations) + **consult** (search/navigation) + **corfu** (in-buffer).
 - Tree-sitter via **treesit-auto** (`treesit-auto-install t`); grammars for go/c/cpp/rust/zig/python/yaml/toml/json/bash are ensured via idle timer on startup.
 - Auth credentials read from `~/.authinfo` via `auth-source`.
-- External packages loaded conditionally from `~/src/`: carp/lisp/agent.el, eshboard (on `C-c k`).
+- External packages loaded conditionally from `~/src/`: carp/lisp/agent.el, eshboard (on `C-c k`), kbdtr/kbdtr.el (keyboard cheat sheet: `C-c K` finds how to type a char, `C-c L` shows the layers).
 - Input method: `cyrillic-dvorak-programming` (defined in `lisp/cyrillic-dvorak-programming.el`), with **reverse-im** so shortcuts work regardless of active input method.

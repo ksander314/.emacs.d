@@ -227,6 +227,12 @@
     (require 'eshboard nil t)
     (global-set-key (kbd "C-c k") #'eshboard)))
 
+(let ((f (expand-file-name "~/src/kbdtr/kbdtr.el")))
+  (when (file-exists-p f)
+    (load f nil t)
+    (global-set-key (kbd "C-c K") #'kbdtr-find)
+    (global-set-key (kbd "C-c L") #'kbdtr-layers)))
+
 (add-hook 'emacs-startup-hook
           (lambda ()
             (message "Emacs ready in %.2f seconds with %d garbage collections."
