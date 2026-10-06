@@ -108,8 +108,8 @@ typed right after a switch used to carry the previous layout."
          ((symbolp ev) (memq ev my/klog--noise-event-syms))
          ((consp ev) (memq (car-safe ev) my/klog--noise-event-syms))
          (t nil)))
-      ;; Any event of the sequence, not just the first; ignore-errors because
-      ;; an error here would drop my/klog-record from post-command-hook.
+      ;; Any event of the sequence, not just the first; ignore-errors so an
+      ;; event `event-basic-type' cannot parse is logged, not dropped.
       (ignore-errors
         (catch 'noise
           (mapc (lambda (ev)
@@ -120,41 +120,47 @@ typed right after a switch used to carry the previous layout."
           nil))))
 
 (defun my/klog-record ()
-  (when (and this-command
-             (not (derived-mode-p 'eshell-mode 'term-mode)))
-    (let ((keys (this-command-keys-vector)))
-      (unless (my/klog--is-noise-event-p keys)
-        (my/klog-init-buffer)
-        (let* ((now (float-time))
-               (now-ms (truncate (* now 1000)))
-               (interval (if my/klog-last-time
-                             (truncate (* (- now my/klog-last-time) 1000))
-                           -1))
-               (is-backspace (memq this-command
-                                   '(delete-backward-char
-                                     backward-delete-char-untabify)))
-               (is-self-insert (eq this-command 'self-insert-command))
-               (event (cond (is-backspace "backspace")
-                            (is-self-insert "char")
-                            (t "chord")))
-               (raw-key (cond (is-backspace "BS")
-                              (is-self-insert
-                               (let ((ev (aref keys (1- (length keys)))))
-                                 (if (characterp ev) (string ev) (format "%S" ev))))
-                              (t (key-description keys))))
-               (key (my/klog--csv-sanitize raw-key))
-               (prev (my/klog--csv-sanitize (or my/klog-last-key "")))
-               (command (symbol-name this-command))
-               (mode (symbol-name major-mode))
-               (layout (my/klog--csv-sanitize (or my/klog--layout "")))
-               (im (my/klog--csv-sanitize (or current-input-method ""))))
-          (with-current-buffer my/klog-buffer
-            (goto-char (point-max))
-            (insert (format "%d,%s,%s,%s,%d,%s,%s,%s,%s\n"
-                            now-ms event key prev interval
-                            command mode layout im)))
-          (setq my/klog-last-key (unless is-backspace key))
-          (setq my/klog-last-time now))))))
+  ;; An error escaping a post-command-hook function makes Emacs remove it, and
+  ;; logging stops for the rest of the session; demoted, it costs one row.
+  (with-demoted-errors "klog: %S"
+    (when (and this-command
+               (not (derived-mode-p 'eshell-mode 'term-mode)))
+      (let ((keys (this-command-keys-vector)))
+        (unless (my/klog--is-noise-event-p keys)
+          (my/klog-init-buffer)
+          (let* ((now (float-time))
+                 (now-ms (truncate (* now 1000)))
+                 (interval (if my/klog-last-time
+                               (truncate (* (- now my/klog-last-time) 1000))
+                             -1))
+                 (is-backspace (memq this-command
+                                     '(delete-backward-char
+                                       backward-delete-char-untabify)))
+                 (is-self-insert (eq this-command 'self-insert-command))
+                 (event (cond (is-backspace "backspace")
+                              (is-self-insert "char")
+                              (t "chord")))
+                 (raw-key (cond (is-backspace "BS")
+                                (is-self-insert
+                                 (let ((ev (aref keys (1- (length keys)))))
+                                   (if (characterp ev) (string ev) (format "%S" ev))))
+                                (t (key-description keys))))
+                 (key (my/klog--csv-sanitize raw-key))
+                 (prev (my/klog--csv-sanitize (or my/klog-last-key "")))
+                 ;; Keys bound to a lambda or a keyboard macro run an unnamed command.
+                 (command (if (symbolp this-command)
+                              (symbol-name this-command)
+                            "anonymous"))
+                 (mode (symbol-name major-mode))
+                 (layout (my/klog--csv-sanitize (or my/klog--layout "")))
+                 (im (my/klog--csv-sanitize (or current-input-method ""))))
+            (with-current-buffer my/klog-buffer
+              (goto-char (point-max))
+              (insert (format "%d,%s,%s,%s,%d,%s,%s,%s,%s\n"
+                              now-ms event key prev interval
+                              command mode layout im)))
+            (setq my/klog-last-key (unless is-backspace key))
+            (setq my/klog-last-time now)))))))
 
 (defun my/klog-start ()
   "Start keystroke logging."
