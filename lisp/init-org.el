@@ -244,13 +244,21 @@ Also auto-set :Resolved: timestamp on incidents when marked DONE."
 
 ;;; Link task to external system (JIRA, GitHub, GitLab)
 
+(defun my/org-jira-browse-template ()
+  "URL template for a Jira key.
+The site comes from ~/.authinfo through `my/jira-url' (init-jira.el), so no
+address sits in this repository; a machine without a Jira token has none."
+  (if (bound-and-true-p my/jira-url)
+      (concat my/jira-url "/browse/%s")
+    (user-error "No Jira site: ~/.authinfo has no *.atlassian.net machine")))
+
 (defvar my/org-link-types
-  '(("j" . ("JIRA"   . "https://tradingview-air.atlassian.net/browse/%s"))
+  '(("j" . ("JIRA"   . my/org-jira-browse-template))
     ("g" . ("GitHub"  . nil))
     ("l" . ("GitLab"  . nil)))
   "Link types: key → (name . url-template-or-nil).
-When url-template is non-nil, the input is a ticket key expanded into a full URL.
-When nil, the input is a full URL.")
+The template is a format string, or a function returning one; the input is
+then a ticket key expanded into a full URL.  When nil, the input is a full URL.")
 
 (defun my/org-link-task ()
   "Attach a link (JIRA/GitHub/GitLab) to the current org heading.
@@ -261,7 +269,7 @@ Stores as a property and as a clickable org-link in the body."
   (let* ((choice (read-char-choice "[j]ira [g]ithub [l]ab: " '(?j ?g ?l)))
          (entry (alist-get (char-to-string choice) my/org-link-types nil nil #'string=))
          (name (car entry))
-         (template (cdr entry))
+         (template (if (functionp (cdr entry)) (funcall (cdr entry)) (cdr entry)))
          (input (read-string (format "%s key/URL: " name)))
          (url (if template
                   (format template input)

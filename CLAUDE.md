@@ -48,10 +48,17 @@ init-tatr          tatr task tracker over tasks/<HUID>/TASK.md folders. C-c n is
                    defaults and keys go in init-tatr.el and a refresh is a plain overwrite
 init-jira          Jira over jira.el; the site address and the token both come from the *.atlassian.net
                    machine in ~/.authinfo, so no address is in git; without that machine (home) jira.el is not
-                   installed and no key is bound. C-c j: my/jira-dashboard, two lists — assigned
-                   to me, waiting for my review (Reviewers = customfield_10093) — leaf issues only, ordered by
-                   board column (my/jira-board-columns, hand-kept) then priority, with a time bar and, for
-                   reviews, a count of returns. a (in both, in C-c J and in an issue card): my/jira-agent-shell,
+                   installed and no key is bound. C-c j: my/jira-dashboard, leaf issues only (no parents
+                   of subtasks), each with a time bar. Top list, under the active sprint's name, day and goal
+                   (tab line): assigned to me, ordered by whose move it is (my/jira-moves: returned, no
+                   reviewer, in work, paused, not started — then the ones waiting for others, longest
+                   standing first). Bottom list: waiting for my review (Reviewers = customfield_10093), by
+                   board column (my/jira-board-columns, hand-kept) then priority, with a count of returns.
+                   In both lists: i starts/stops the org clock on the issue (today's entry under today's
+                   heading of work.org, :JIRA: key, INPROCESS/PAUSE, so standup, timesheet and the Focus
+                   Shield see it); w sends the time not yet sent (:JIRA_SENT:) as a Jira worklog; r moves the
+                   issue to review with that time in the same request (the review transition demands it).
+                   a (in both, in C-c J and in an issue card): my/jira-agent-shell,
                    a fresh Claude agent-shell in ~/src/backend-dashboard (C-u: pick the directory) with the
                    issue's key, summary and link waiting in the prompt; one shell per issue, a second a returns
                    to it. C-c J: jira.el's team list; its filter is a transient saved
