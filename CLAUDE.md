@@ -51,9 +51,9 @@ init-jira          Jira over jira.el; the site address and the token both come f
                    machine in ~/.authinfo, so no address is in git; without that machine (home) jira.el is not
                    installed and no key is bound. C-c j: my/jira-dashboard, leaf issues only (no parents
                    of subtasks), each with a time bar. Top list, under the active sprint's name, day and goal
-                   (tab line): assigned to me, ordered by whose move it is (my/jira-moves: returned, no
-                   reviewer, in work, paused, not started — then the ones waiting for others, longest
-                   standing first). Bottom list: waiting for my review (Reviewers = customfield_10093), by
+                   (tab line): assigned to me in the current sprint, ordered by whose move it is
+                   (my/jira-moves: returned, no reviewer, in work, paused, not started — then the ones
+                   waiting for others, longest standing first). Bottom list: waiting for my review (Reviewers = customfield_10093), by
                    board column (my/jira-board-columns, hand-kept) then priority, with a count of returns.
                    In both lists: i starts/stops the org clock on the issue (today's entry under today's
                    heading of work.org, :JIRA: key, INPROCESS/PAUSE, so standup, timesheet and the Focus

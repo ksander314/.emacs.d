@@ -214,13 +214,12 @@ Issues waiting for others follow, the longest standing first."
 
 ;;; The two lists
 
-;; The whole backlog assigned to me is over a hundred issues, almost all Open,
-;; so the not-started ones count only in the current sprint.  Started ones
-;; count wherever they are: on 2026-10-05 two of them sat in a future sprint.
+;; The current sprint only.  Started issues moved to the next sprint stay out
+;; too: they are planned there (on 2026-10-07 four of them, all in 26Q4S2).
 (defconst my/jira-mine-jql
   (concat "project = DSHB AND assignee = currentUser()"
           " AND statusCategory != Done AND status != \"Ready for deploy\""
-          " AND (sprint in openSprints() OR statusCategory = \"In Progress\")"))
+          " AND sprint in openSprints()"))
 
 ;; cf[10093] is Reviewers.
 (defconst my/jira-review-jql
