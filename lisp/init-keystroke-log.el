@@ -191,7 +191,7 @@ alone, so the intervals between keys stay what they were."
         (run-with-timer my/klog-flush-interval my/klog-flush-interval
                         #'my/klog-flush))
   ;; The poll asks macOS `defaults'.  Elsewhere the layout column stays
-  ;; empty and ~/src/kbdtr/kb takes the layout from the letters.
+  ;; empty and kbdtr/kb in `my/zmk-repo' takes the layout from the letters.
   (when (eq system-type 'darwin)
     (setq my/klog--layout-timer
           (run-with-idle-timer my/klog--layout-refresh-interval t

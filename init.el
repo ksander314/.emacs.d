@@ -227,8 +227,12 @@
     (require 'eshboard nil t)
     (global-set-key (kbd "C-c k") #'eshboard)))
 
-(let ((f (expand-file-name "~/src/kbdtr/kbdtr.el")))
-  (when (file-exists-p f)
+(defvar my/zmk-repo (expand-file-name (or (getenv "ZMK_REPO") "~/src/zmk-new_corne"))
+  "Checkout of the eyelash_corne keymap repo; kbdtr.el lives in its kbdtr/.")
+
+(let ((f (expand-file-name "kbdtr/kbdtr.el" my/zmk-repo)))
+  (if (not (file-exists-p f))
+      (display-warning 'kbdtr (format "%s is missing: no C-c K and C-c L" f))
     (load f nil t)
     (global-set-key (kbd "C-c K") #'kbdtr-find)
     (global-set-key (kbd "C-c L") #'kbdtr-layers)))
