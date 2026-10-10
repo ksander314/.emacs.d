@@ -14,6 +14,9 @@
 The token's line already names the site, so the address stays out of this
 repository.  No trailing slash: jira.el strips \"https://\" and looks the
 rest up as that same machine to find the token."
+  ;; Not autoloaded, and this runs while init.el loads, before anything else
+  ;; has pulled auth-source in.
+  (require 'auth-source)
   (require 'seq)
   (when-let* ((host (seq-find (lambda (host)
                                 (and (stringp host) (string-suffix-p ".atlassian.net" host)))
