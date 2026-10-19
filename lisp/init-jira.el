@@ -593,7 +593,9 @@ With a prefix argument, asks for DIRECTORY instead of using
 
 (defun my/jira-clocked-key ()
   "The :JIRA: key of the entry the org clock runs on, or nil."
-  (and (org-clocking-p) (org-entry-get org-clock-marker "JIRA")))
+  (and (fboundp 'org-clocking-p)
+       (org-clocking-p)
+       (org-entry-get org-clock-marker "JIRA")))
 
 (defun my/jira-clock-toggle (key)
   "Start the clock on issue KEY, or stop it if it already runs there.
