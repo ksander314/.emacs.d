@@ -202,13 +202,20 @@ never moved."
       (format "%dч" (/ seconds 3600))
     (format "%dд" (/ seconds 86400))))
 
+(defun my/jira-current-p (issue)
+  "Non-nil if ISSUE is being developed right now."
+  (member (let-alist issue .fields.status.name) '("Develop" "In Progress")))
+
 (defun my/jira-move-order (a b)
   "Non-nil if my issue A goes first.
-My moves come first, in the order of `my/jira-moves', then by priority.
-Issues waiting for others follow, the longest standing first."
+Issues being developed come first of all.  My moves follow, in the order of
+`my/jira-moves', then by priority.  Issues waiting for others come last, the
+longest standing first."
   (let ((move-a (my/jira-move a))
         (move-b (my/jira-move b)))
-    (cond ((and (my/jira-waiting-p move-a) (my/jira-waiting-p move-b))
+    (cond ((and (my/jira-current-p a) (not (my/jira-current-p b))) t)
+          ((and (my/jira-current-p b) (not (my/jira-current-p a))) nil)
+          ((and (my/jira-waiting-p move-a) (my/jira-waiting-p move-b))
            (> (my/jira-standing a) (my/jira-standing b)))
           ((not (equal move-a move-b))
            (< (my/jira-move-rank move-a) (my/jira-move-rank move-b)))
@@ -260,20 +267,32 @@ Issues waiting for others follow, the longest standing first."
   (< (my/jira-age-hours (my/jira-cell a "Стоит"))
      (my/jira-age-hours (my/jira-cell b "Стоит"))))
 
+(defun my/jira-emphasize (row)
+  "ROW of a tabulated list with every cell in bold."
+  (list (car row)
+        (vconcat (mapcar (lambda (cell)
+                           (let ((cell (copy-sequence cell)))
+                             (add-face-text-property 0 (length cell) 'bold t cell)
+                             cell))
+                         (cadr row)))))
+
 (defun my/jira-mine-row (issue)
-  "ISSUE as a line of the list of my issues."
+  "ISSUE as a line of the list of my issues, in bold while it is being developed."
   (let-alist issue
-    (let ((priority (my/jira-priority .fields.priority.name))
-          (move (my/jira-move issue)))
-      (list .key (vector .key .fields.issuetype.name
-                         (propertize move 'face (cond ((my/jira-waiting-p move) 'shadow)
-                                                      ((member move '("вернули" "нет ревьюера"))
-                                                       'warning)))
-                         .fields.status.name
-                         (my/jira-age (my/jira-standing issue))
-                         (if (= priority 9) "—" (format "P%d" priority))
-                         (my/jira-progress issue)
-                         (my/jira-title issue))))))
+    (let* ((priority (my/jira-priority .fields.priority.name))
+           (move (my/jira-move issue))
+           (row (list .key (vector .key .fields.issuetype.name
+                                   (propertize move 'face (cond ((my/jira-waiting-p move) 'shadow)
+                                                                ((member move '("вернули" "нет ревьюера"))
+                                                                 'warning)))
+                                   .fields.status.name
+                                   (my/jira-age (my/jira-standing issue))
+                                   (if (= priority 9) "—" (format "P%d" priority))
+                                   (my/jira-progress issue)
+                                   (my/jira-title issue)))))
+      (if (my/jira-current-p issue)
+          (my/jira-emphasize row)
+        row))))
 
 (defun my/jira-review-row (issue)
   "ISSUE as a line of the list waiting for my review."
@@ -291,6 +310,7 @@ Issues waiting for others follow, the longest standing first."
 (defvar-local my/jira-list-expand nil "The search's expand parameter, if any.")
 (defvar-local my/jira-list-sprint nil "Non-nil if this buffer shows the sprint line.")
 (defvar-local my/jira-list-issues nil "The issues of Jira's last answer for this buffer.")
+(defvar-local my/jira-list-sprint-line nil "The sprint line, once Jira has answered.")
 
 (define-derived-mode my/jira-list-mode tabulated-list-mode "Jira"
   "A list of Jira issues: RET details, C status, O browser, a agent-shell, g refresh."
@@ -447,9 +467,28 @@ Jira's endDate is the closing Monday morning, its startDate the planning hour."
                  (with-current-buffer buffer
                    ;; The tab line sits above tabulated-list's header line and,
                    ;; unlike buffer text, survives every redraw of the list.
-                   (setq-local tab-line-format (my/jira-sprint-line sprint))
+                   (setq my/jira-list-sprint-line (my/jira-sprint-line sprint))
+                   (setq-local tab-line-format '(:eval (my/jira-tab-line)))
                    (force-mode-line-update))))
    :errback (lambda (&rest _) (message "Jira: the sprint did not load"))))
+
+(defun my/jira-tab-line ()
+  "The issues being developed, if any, then the sprint line."
+  (let ((current (seq-filter (lambda (issue)
+                               (and (my/jira-leaf-p issue) (my/jira-current-p issue)))
+                             my/jira-list-issues)))
+    (string-replace
+     "%" "%%"
+     (concat (when current
+               (propertize
+                (format " в работе: %s  │"
+                        (mapconcat (lambda (issue)
+                                     (format "%s %s" (alist-get 'key issue)
+                                             (truncate-string-to-width
+                                              (my/jira-title issue) 50 nil nil "…")))
+                                   current "  ·  "))
+                'face 'bold))
+             my/jira-list-sprint-line))))
 
 (defun my/jira-dashboard ()
   "Show the issues assigned to me and, below them, the ones waiting for my review."
