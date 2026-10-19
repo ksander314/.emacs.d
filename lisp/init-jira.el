@@ -18,11 +18,15 @@ rest up as that same machine to find the token."
   ;; has pulled auth-source in.
   (require 'auth-source)
   (require 'seq)
-  (when-let* ((host (seq-find (lambda (host)
-                                (and (stringp host) (string-suffix-p ".atlassian.net" host)))
-                              (mapcar (lambda (entry) (plist-get entry :host))
-                                      (auth-source-search :host t :max 100)))))
-    (concat "https://" host)))
+  (condition-case err
+      (when-let* ((host (seq-find (lambda (host)
+                                    (and (stringp host) (string-suffix-p ".atlassian.net" host)))
+                                  (mapcar (lambda (entry) (plist-get entry :host))
+                                          (auth-source-search :host t :max 100)))))
+        (concat "https://" host))
+    (error (display-warning 'jira (format "~/.authinfo: %s: no C-c j and C-c J"
+                                          (error-message-string err)))
+           nil)))
 
 (defvar my/jira-url (my/jira-url-from-authinfo)
   "The Jira site, or nil on a machine whose ~/.authinfo has no Jira token.")
