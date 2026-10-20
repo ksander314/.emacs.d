@@ -10,6 +10,8 @@ Personal Emacs configuration. `init.el` is the entry point; it loads feature mod
 
 To test a change without restarting Emacs: `M-x eval-buffer` (current file) or `M-x load-file` on a specific module. To byte-compile a file for error checking: `M-x byte-compile-file`.
 
+Package updates go through `bin/straight-update` (check, review, apply), as README.md describes; never `straight-pull-all` in the running Emacs.
+
 ## Architecture
 
 `init.el` handles global settings and the core package stack, then `require`s each module:

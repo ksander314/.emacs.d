@@ -1,0 +1,260 @@
+#!/bin/sh
+set -eu
+
+root=$(cd "$(dirname "$0")/.." && pwd -P)
+lock=straight/versions/default.el
+repos=$root/straight/repos
+tmp=$(mktemp -d)
+trap 'rm -rf "$tmp"' EXIT
+: > "$tmp/problems"
+
+calls='call-process|call-process-region|process-file|process-file-shell-command|start-process|start-file-process|make-process|make-pipe-process|make-network-process|open-network-stream|shell-command|shell-command-to-string|async-shell-command|process-lines|url-retrieve|url-retrieve-synchronously|url-copy-file|url-insert-file-contents|eval|load|load-file|read-from-string|base64-decode-string|base64-decode-region|setenv|getenv|write-region|with-temp-file|delete-file|delete-directory|rename-file|copy-file|make-symbolic-link|set-file-modes'
+risky="[(#'](${calls})([ )]|\$)|https?://|auth-source|authinfo|netrc|password|passwd|secret|api-key|api_key|keychain|process-environment|[.]ssh|[.]kube|[.]aws|[.]gnupg"
+
+usage() {
+    cat >&2 <<'EOF'
+usage: bin/straight-update check [DAYS]
+         Fetch every repo in straight/repos/ without checking anything out.
+         Write into straight/versions/default.el, per package, the newest
+         commit older than DAYS (default 7), and print what to review.
+       bin/straight-update apply
+         Move straight/repos/ to straight/versions/default.el. Load init.el
+         in batch Emacs before and after, print what got worse.
+       bin/straight-update rollback
+         Restore the committed straight/versions/default.el and move
+         straight/repos/ back to it.
+EOF
+    exit 2
+}
+
+die() {
+    echo "straight-update: $*" >&2
+    exit 1
+}
+
+short() {
+    printf %.8s "$1"
+}
+
+problem() {
+    echo "  $*" >> "$tmp/problems"
+}
+
+entries() {
+    sed -n 's/^[ (]*("\([^"]*\)" \. "\([0-9a-f]\{40\}\)").*/\1 \2/p' "$root/$lock" > "$tmp/entries"
+}
+
+scan() {
+    git -C "$1" diff --no-color --no-ext-diff --no-textconv --src-prefix=a/ --dst-prefix=b/ \
+        -U0 "$3" "$4" -- '*.el' \
+        ':(exclude,glob)**/test/**' ':(exclude,glob)**/tests/**' \
+        ':(exclude,glob)**/*-test.el' ':(exclude,glob)**/*-tests.el' |
+        awk -v dir="straight/repos/$2/" -v risky="$risky" '
+            /^diff --git / { header = 1; next }
+            header && /^\+\+\+ b\// { file = substr($0, 7); next }
+            /^@@ / { header = 0; split($3, a, ","); line = substr(a[1], 2); next }
+            header { next }
+            /^\+/ {
+                text = substr($0, 2)
+                if (text ~ /Package-Requires|define-package/ || (text !~ /^[ \t]*;/ && text ~ risky))
+                    printf "%s%s:%d: %s\n", dir, file, line, substr(text, 1, 200)
+                line++
+            }'
+}
+
+check() {
+    days=${1:-7}
+    case $days in ''|*[!0-9]*) usage ;; esac
+    git -C "$root" diff --quiet HEAD -- "$lock" ||
+        die "$lock has uncommitted changes: apply or roll them back first"
+    entries
+    echo "Fetching $(wc -l < "$tmp/entries" | tr -d ' ') repos..."
+    while read -r repo _; do
+        if [ -d "$repos/$repo" ]; then echo "$repos/$repo"; fi
+    done < "$tmp/entries" |
+        xargs -P 8 -I % sh -c 'git -C "$1" fetch -q --prune origin ||
+            echo "  ${1##*/}: git fetch failed, plan uses the last fetch" >> "$2"' sh % "$tmp/problems"
+
+    : > "$tmp/sed"
+    : > "$tmp/summary"
+    : > "$tmp/details"
+    uptodate=0
+    while read -r repo old; do
+        dir=$repos/$repo
+        if [ ! -d "$dir" ]; then
+            problem "$repo: not cloned"
+            continue
+        fi
+        head=$(git -C "$dir" rev-parse HEAD)
+        branch=$(git -C "$dir" symbolic-ref -q --short HEAD) || branch=
+        if [ "$head" != "$old" ]; then
+            problem "$repo: checked out $(short "$head"), lockfile has $(short "$old"): apply or roll back first"
+            continue
+        fi
+        if [ -n "$(git -C "$dir" status --porcelain)" ]; then
+            problem "$repo: uncommitted changes"
+            continue
+        fi
+        if [ -z "$branch" ] || ! up=$(git -C "$dir" rev-parse -q --verify "origin/$branch^{commit}"); then
+            default=$(git -C "$dir" symbolic-ref -q --short refs/remotes/origin/HEAD) || default=
+            problem "$repo: no origin/${branch:-<branch>}${default:+, upstream default is $default (renamed?)}"
+            continue
+        fi
+        if ! git -C "$dir" merge-base --is-ancestor "$old" "$up"; then
+            problem "$repo: origin/$branch no longer contains $(short "$old"), its history was rewritten"
+            continue
+        fi
+        total=$(git -C "$dir" rev-list --count "$old..$up")
+        if [ "$total" -eq 0 ]; then
+            uptodate=$((uptodate + 1))
+            continue
+        fi
+        new=$(git -C "$dir" rev-list -n 1 --first-parent --before="$days days ago" "$up")
+        if [ -z "$new" ] || ! git -C "$dir" merge-base --is-ancestor "$old" "$new"; then
+            new=$old
+        fi
+        taken=$(git -C "$dir" rev-list --count "$old..$new")
+        flagged=0
+        if [ "$taken" -gt 0 ]; then
+            echo "s/$old/$new/" >> "$tmp/sed"
+            scan "$dir" "$repo" "$old" "$new" > "$tmp/hits"
+            flagged=$(wc -l < "$tmp/hits" | tr -d ' ')
+            {
+                echo
+                echo "=== $repo: $taken commits, $(short "$old")..$(short "$new")"
+                git -C "$dir" log --format='%h %cs %<(18,trunc)%an %s' "$old..$new"
+                if [ "$flagged" -gt 0 ]; then
+                    echo "--- added lines to read:"
+                    cat "$tmp/hits"
+                fi
+            } >> "$tmp/details"
+        fi
+        printf '%-32s %5s %5s %7s\n' "$repo" "$taken" "$((total - taken))" "$flagged" >> "$tmp/summary"
+    done < "$tmp/entries"
+
+    if [ -s "$tmp/sed" ]; then
+        sed -f "$tmp/sed" "$root/$lock" > "$tmp/lock"
+        cat "$tmp/lock" > "$root/$lock"
+    fi
+    cat "$tmp/details"
+    echo
+    printf '%-32s %5s %5s %7s\n' package take newer flagged
+    echo '────────────────────────────────────────────────────────'
+    cat "$tmp/summary"
+    echo "take: commits older than $days days. newer: left for the next check."
+    echo "Up to date: $uptodate."
+    if [ -s "$tmp/problems" ]; then
+        echo "Skipped:"
+        cat "$tmp/problems"
+    fi
+    if [ -s "$tmp/sed" ]; then
+        echo "The plan is $lock: git diff shows it, git checkout -p drops a package."
+        echo "Review it, then: bin/straight-update apply"
+    else
+        echo "Nothing to take."
+    fi
+}
+
+plan_moves() {
+    entries
+    : > "$tmp/moves"
+    while read -r repo sha; do
+        dir=$repos/$repo
+        if [ ! -d "$dir" ]; then continue; fi
+        head=$(git -C "$dir" rev-parse HEAD)
+        if [ "$head" = "$sha" ]; then continue; fi
+        if [ -n "$(git -C "$dir" status --porcelain)" ]; then
+            problem "$repo: uncommitted changes"
+        elif [ -z "$(git -C "$dir" branch -r --contains HEAD)" ]; then
+            problem "$repo: $(short "$head") is on no remote branch, a reset would lose it"
+        fi
+        echo "$repo $head $sha" >> "$tmp/moves"
+    done < "$tmp/entries"
+    if [ -s "$tmp/problems" ]; then
+        cat "$tmp/problems" >&2
+        die "nothing moved"
+    fi
+}
+
+move_repos() {
+    : > "$tmp/moved"
+    while read -r repo head sha; do
+        dir=$repos/$repo
+        git -C "$dir" cat-file -e "$sha^{commit}" 2>/dev/null || git -C "$dir" fetch -q origin
+        git -C "$dir" reset -q --hard "$sha" ||
+            die "$repo: cannot check out $(short "$sha"); the repos listed before it moved, run apply again or rollback"
+        if git -C "$dir" merge-base --is-ancestor "$head" "$sha"; then
+            n=$(git -C "$dir" rev-list --count "$head..$sha")
+        else
+            n=back
+        fi
+        printf '  %-20s %4s  %s..%s\n' "$repo" "$n" "$(short "$head")" "$(short "$sha")" >> "$tmp/moved"
+    done < "$tmp/moves"
+}
+
+smoke() {
+    "${EMACS:-emacs}" -Q --batch -l "$root/bin/straight-smoke.el" < /dev/null 2>&1 |
+        grep -E '^smoke: |: (Warning|Error): |^Warning \(' || true
+}
+
+apply() {
+    [ "$(cd "$HOME/.emacs.d" && pwd -P)" = "$root" ] ||
+        die "$HOME/.emacs.d is not $root, batch Emacs would load another config"
+    plan_moves
+    if [ ! -s "$tmp/moves" ]; then
+        echo "straight/repos/ already matches $lock."
+        return
+    fi
+    echo "Loading init.el in batch Emacs before the move..."
+    smoke > "$tmp/before"
+    move_repos
+    echo "Loading it again after the move; straight rebuilds what moved..."
+    smoke > "$tmp/after"
+
+    grep -vxFf "$tmp/before" "$tmp/after" > "$tmp/worse" || true
+    grep -qx 'smoke: done' "$tmp/after" ||
+        echo "smoke: batch Emacs stopped before the end" >> "$tmp/worse"
+    for dir in "$repos"/*/; do
+        repo=$(basename "$dir")
+        cut -d' ' -f1 "$tmp/entries" | grep -qxF -- "$repo" ||
+            echo "smoke: straight/repos/$repo is not in $lock: a new dependency, cloned unread" >> "$tmp/worse"
+    done
+    echo
+    if [ -s "$tmp/worse" ]; then
+        echo "Worse than before the move:"
+        cat "$tmp/worse"
+    else
+        echo "Batch Emacs: nothing new failed."
+    fi
+    echo
+    if git -C "$root" diff --quiet HEAD -- "$lock"; then
+        echo "Restart Emacs now."
+        return
+    fi
+    echo "Restart Emacs now. If it works, commit $lock with:"
+    echo
+    echo "straight: bump $(wc -l < "$tmp/moved" | tr -d ' ') packages"
+    echo
+    sort -k2 -nr "$tmp/moved"
+    echo
+    echo "If it does not: bin/straight-update rollback"
+}
+
+rollback() {
+    git -C "$root" checkout -- "$lock"
+    plan_moves
+    if [ ! -s "$tmp/moves" ]; then
+        echo "straight/repos/ already matches the committed $lock."
+        return
+    fi
+    move_repos
+    cat "$tmp/moved"
+    echo "Restart Emacs: straight rebuilds these at startup."
+}
+
+case ${1:-} in
+    check) shift; check "$@" ;;
+    apply) apply ;;
+    rollback) rollback ;;
+    *) usage ;;
+esac
