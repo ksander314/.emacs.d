@@ -24,6 +24,7 @@ transient/
 tree-sitter/
 .claude/
 /.agent-shell/
+/agent-shell/
 /agent/
 /history
 /keystroke-log.csv*
