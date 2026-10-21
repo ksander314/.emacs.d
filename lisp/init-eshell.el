@@ -35,7 +35,6 @@
       (append-to-file command-with-newline nil eshell-history-file-name))))
 
 (with-eval-after-load 'eshell
-  (remove-hook 'eshell-post-command-hook #'eshell-save-history)
   (add-hook 'eshell-post-command-hook #'my/eshell-append-to-history))
 
 (provide 'init-eshell)
