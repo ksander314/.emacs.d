@@ -547,7 +547,7 @@ Optionally start working on it immediately."
            (when (and todo-state
                       parent-date
                       (string-match "^[0-9]\\{4\\}-[0-9]\\{2\\}-[0-9]\\{2\\}$" parent-date)
-                      (string<= cutoff parent-date)
+                      (not (string< parent-date cutoff))
                       (> clocked 0))
              (if (member "unplanned" tags)
                  (progn

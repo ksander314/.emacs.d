@@ -168,7 +168,7 @@ Use when interrupted.  Restore with `my/focus-thaw'."
            (when (and date (string= date today))
              (setq today-count (1+ today-count))
              (setq today-minutes (+ today-minutes dur-minutes)))
-           (when (and date (string<= week-start date) (string<= date today))
+           (when (and date (not (string< date week-start)) (not (string< today date)))
              (setq week-count (1+ week-count))
              (setq week-minutes (+ week-minutes dur-minutes)))))))
     (with-current-buffer (get-buffer-create "*Focus Shield Report*")
