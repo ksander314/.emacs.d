@@ -41,8 +41,8 @@
   ;; RET inserts newline; M-RET submits — prevents accidental sends
   (define-key agent-shell-mode-map (kbd "RET") #'newline)
   (define-key agent-shell-mode-map (kbd "<return>") #'newline)
-  (define-key agent-shell-mode-map (kbd "M-RET") #'shell-maker-submit)
-  (define-key agent-shell-mode-map (kbd "<M-return>") #'shell-maker-submit)
+  (define-key agent-shell-mode-map (kbd "M-RET") #'agent-shell-submit)
+  (define-key agent-shell-mode-map (kbd "<M-return>") #'agent-shell-submit)
   ;; Reveal the concrete model in the header.  No option's :name carries a
   ;; version -- they read "Default (recommended)", "Opus (1M context)",
   ;; "Sonnet", "Haiku" -- while every :description leads with the real one
