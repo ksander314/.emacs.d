@@ -167,6 +167,22 @@
 (global-set-key (kbd "C-c e") 'flymake-goto-next-error)
 (global-set-key (kbd "C-c o") 'flymake-goto-prev-error)
 
+(setq trusted-content
+      (list (file-name-as-directory
+             (abbreviate-file-name (file-truename (locate-user-emacs-file "lisp/"))))))
+
+(defun my/elisp-flymake-setup ()
+  "Turn on Flymake in this config's own Emacs Lisp files.
+Modules in lisp/ are byte-compiled; init.el gets checkdoc only, since
+compiling it loads every module and the compile process would then
+overwrite org-clock-save.el on exit."
+  (when (and buffer-file-truename (trusted-content-p))
+    (setq-local elisp-flymake-byte-compile-load-path load-path)
+    (when (and user-init-file (file-equal-p buffer-file-truename user-init-file))
+      (remove-hook 'flymake-diagnostic-functions #'elisp-flymake-byte-compile t))
+    (flymake-mode)))
+(add-hook 'emacs-lisp-mode-hook #'my/elisp-flymake-setup)
+
 ;; Eglot (built-in)
 (with-eval-after-load 'eglot
   (define-key eglot-mode-map (kbd "C-c C-g") 'xref-find-definitions)
