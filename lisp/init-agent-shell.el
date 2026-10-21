@@ -216,7 +216,7 @@ Skip if SHELL-BUFFER is already visible in a window."
 (defun my/agent-alert-goto ()
   "Dismiss alert at point and switch to its agent-shell buffer."
   (interactive)
-  (when-let ((alert (get-text-property (point) 'my/alert)))
+  (when-let* ((alert (get-text-property (point) 'my/alert)))
     (let ((buf (plist-get alert :buffer)))
       (setq my/agent-alerts (delq alert my/agent-alerts))
       (my/agent-alert-refresh)
@@ -252,8 +252,8 @@ q            dismiss all alerts"
 (defun my/agent-alert-refresh ()
   "Redraw *Agent Alerts* buffer, or hide it when empty."
   (if (null my/agent-alerts)
-      (when-let ((buf (get-buffer "*Agent Alerts*")))
-        (when-let ((win (get-buffer-window buf t)))
+      (when-let* ((buf (get-buffer "*Agent Alerts*")))
+        (when-let* ((win (get-buffer-window buf t)))
           (delete-window win))
         (kill-buffer buf))
     (let ((buf (get-buffer-create "*Agent Alerts*")))
