@@ -1,103 +1,110 @@
 ;;; init-org.el --- Org-mode configuration -*- lexical-binding: t -*-
-(with-eval-after-load 'org
-  (org-babel-do-load-languages
-   'org-babel-load-languages
-   '((dot . t)))
+(require 'org)
+(require 'org-agenda)
+(require 'org-capture)
+(require 'org-clock)
+(require 'org-habit)
+(require 'init-utils)
 
-  (setq org-enforce-todo-dependencies t)
-  (setq org-startup-indented t)
-  (setq org-ellipsis " ⤵")
+(defvar org-state)
 
-  (setq org-agenda-files '("~/src/org/inbox.org"
-                           "~/src/org/work.org"
-                           "~/src/org/projects.org"))
+(org-babel-do-load-languages
+ 'org-babel-load-languages
+ '((dot . t)))
 
-  (setq org-todo-keywords
-        '((sequence "TODO(t)" "PAUSE(p)" "INPROCESS(s)" "|" "DONE(d)" "CANCELED(c)")))
+(setq org-enforce-todo-dependencies t)
+(setq org-startup-indented t)
+(setq org-ellipsis " ⤵")
 
-  (setq org-todo-keyword-faces
-        '(("TODO" . org-warning)
-          ("INPROCESS" . "orange")
-          ("PAUSE" . "gray")
-          ("DONE" . (:foreground "gray" :strike-through t))
-          ("CANCELED" . (:foreground "green" :strike-through t))))
+(setq org-agenda-files '("~/src/org/inbox.org"
+                         "~/src/org/work.org"
+                         "~/src/org/projects.org"))
 
-  ;; Priorities
-  (setq org-priority-faces
-        '((?A . (:foreground "red" :weight bold))
-          (?B . (:foreground "orange"))
-          (?C . (:foreground "gray"))))
+(setq org-todo-keywords
+      '((sequence "TODO(t)" "PAUSE(p)" "INPROCESS(s)" "|" "DONE(d)" "CANCELED(c)")))
 
-  ;; Effort estimates for quick selection via C-c C-x e
-  (setq org-global-properties
-        '(("Effort_ALL" . "0:10 0:20 0:30 1:00 2:00 4:00")))
-  (setq org-columns-default-format
-        "%40ITEM(Task) %TODO %6Effort(Est){:} %6CLOCKSUM(Actual){:}")
+(setq org-todo-keyword-faces
+      '(("TODO" . org-warning)
+        ("INPROCESS" . "orange")
+        ("PAUSE" . "gray")
+        ("DONE" . (:foreground "gray" :strike-through t))
+        ("CANCELED" . (:foreground "green" :strike-through t))))
 
-  ;; Habit tracking (visual consistency graph in agenda)
-  (require 'org-habit)
-  (setq org-habit-graph-column 50)
+;; Priorities
+(setq org-priority-faces
+      '((?A . (:foreground "red" :weight bold))
+        (?B . (:foreground "orange"))
+        (?C . (:foreground "gray"))))
 
-  (setq org-log-done 'time)
-  (setq org-log-into-drawer t)
+;; Effort estimates for quick selection via C-c C-x e
+(setq org-global-properties
+      '(("Effort_ALL" . "0:10 0:20 0:30 1:00 2:00 4:00")))
+(setq org-columns-default-format
+      "%40ITEM(Task) %TODO %6Effort(Est){:} %6CLOCKSUM(Actual){:}")
 
-  (setq org-clock-persist 'history)
-  (org-clock-persistence-insinuate)
+;; Habit tracking (visual consistency graph in agenda)
+(setq org-habit-graph-column 50)
 
-  ;; Refile targets: daily headings in work.org, project headings in projects.org
-  (setq org-refile-targets '(("~/src/org/work.org" :level . 1)
-                              ("~/src/org/projects.org" :level . 1)))
-  (setq org-refile-use-outline-path 'file)
-  (setq org-outline-path-complete-in-steps nil)
+(setq org-log-done 'time)
+(setq org-log-into-drawer t)
 
-  (setq org-capture-templates
-        '(("t" "Task" entry (file "~/src/org/inbox.org")
-           "* TODO %?\n")
-          ("j" "JIRA Task" entry (file "~/src/org/inbox.org")
-           "* TODO %^{JIRA Key} %?\n:PROPERTIES:\n:JIRA: %\\1\n:END:\n")
-          ("p" "Project" entry (file "~/src/org/projects.org")
-           "* TODO %?\n:PROPERTIES:\n:Created: %U\n:END:\n")))
+(setq org-clock-persist 'history)
+(org-clock-persistence-insinuate)
 
-  (setq org-agenda-custom-commands
-        `(("d" "Dashboard"
-           ((agenda "" ((org-agenda-span 'day)
-                        (org-agenda-overriding-header
-                         ,(lambda () (concat "Сегодня  " (my/org-day-progress))))))
-            (todo "INPROCESS"
-                  ((org-agenda-overriding-header "В работе")))
-            (todo "PAUSE"
-                  ((org-agenda-overriding-header "На паузе")))
-            (tags-todo "+TODO=\"TODO\""
-                       ((org-agenda-files '("~/src/org/work.org"))
-                        (org-agenda-overriding-header "Задачи в work.org")))
-            (tags-todo "+TODO=\"TODO\""
-                       ((org-agenda-files '("~/src/org/inbox.org"))
-                        (org-agenda-overriding-header "Inbox")))
-            (tags-todo "+TODO=\"TODO\"|+TODO=\"INPROCESS\""
-                       ((org-agenda-files '("~/src/org/projects.org"))
-                        (org-agenda-overriding-header "Проекты")))
-            (tags "+CLOSED>=\"<today>\""
-                  ((org-agenda-overriding-header "Выполнено сегодня")
-                   (org-agenda-skip-function
-                    '(org-agenda-skip-entry-if 'nottodo 'done))))))
-          ("u" "Unplanned" tags "+unplanned"
-           ((org-agenda-overriding-header "Незапланированные задачи")))
-          ("i" "In Progress" todo "INPROCESS"
-           ((org-agenda-overriding-header "Сейчас в работе")))
-          ("r" "Review open items" tags-todo "+TODO=\"TODO\""
-           ((org-agenda-files '("~/src/org/reviews.org"
-                                "~/src/org/decisions.org"
-                                "~/src/org/incidents.org"
-                                "~/src/org/people.org"))
-            (org-agenda-overriding-header "Открытые пункты (reviews/decisions/incidents/people)")))))
+;; Refile targets: daily headings in work.org, project headings in projects.org
+(setq org-refile-targets '(("~/src/org/work.org" :level . 1)
+                            ("~/src/org/projects.org" :level . 1)))
+(setq org-refile-use-outline-path 'file)
+(setq org-outline-path-complete-in-steps nil)
 
-  (setq org-archive-location "~/src/org/work.org_archive::datetree/")
+(setq org-capture-templates
+      '(("t" "Task" entry (file "~/src/org/inbox.org")
+         "* TODO %?\n")
+        ("j" "JIRA Task" entry (file "~/src/org/inbox.org")
+         "* TODO %^{JIRA Key} %?\n:PROPERTIES:\n:JIRA: %\\1\n:END:\n")
+        ("p" "Project" entry (file "~/src/org/projects.org")
+         "* TODO %?\n:PROPERTIES:\n:Created: %U\n:END:\n")))
 
-  (add-hook 'org-after-todo-state-change-hook #'my/org-auto-clock-on-state-change)
+(setq org-agenda-custom-commands
+      `(("d" "Dashboard"
+         ((agenda "" ((org-agenda-span 'day)
+                      (org-agenda-overriding-header
+                       ,(lambda () (concat "Сегодня  " (my/org-day-progress))))))
+          (todo "INPROCESS"
+                ((org-agenda-overriding-header "В работе")))
+          (todo "PAUSE"
+                ((org-agenda-overriding-header "На паузе")))
+          (tags-todo "+TODO=\"TODO\""
+                     ((org-agenda-files '("~/src/org/work.org"))
+                      (org-agenda-overriding-header "Задачи в work.org")))
+          (tags-todo "+TODO=\"TODO\""
+                     ((org-agenda-files '("~/src/org/inbox.org"))
+                      (org-agenda-overriding-header "Inbox")))
+          (tags-todo "+TODO=\"TODO\"|+TODO=\"INPROCESS\""
+                     ((org-agenda-files '("~/src/org/projects.org"))
+                      (org-agenda-overriding-header "Проекты")))
+          (tags "+CLOSED>=\"<today>\""
+                ((org-agenda-overriding-header "Выполнено сегодня")
+                 (org-agenda-skip-function
+                  '(org-agenda-skip-entry-if 'nottodo 'done))))))
+        ("u" "Unplanned" tags "+unplanned"
+         ((org-agenda-overriding-header "Незапланированные задачи")))
+        ("i" "In Progress" todo "INPROCESS"
+         ((org-agenda-overriding-header "Сейчас в работе")))
+        ("r" "Review open items" tags-todo "+TODO=\"TODO\""
+         ((org-agenda-files '("~/src/org/reviews.org"
+                              "~/src/org/decisions.org"
+                              "~/src/org/incidents.org"
+                              "~/src/org/people.org"))
+          (org-agenda-overriding-header "Открытые пункты (reviews/decisions/incidents/people)")))))
 
-  ;; Color-code agenda entries by tag
-  (add-hook 'org-agenda-finalize-hook #'my/org-agenda-color-by-tag)
-  (add-hook 'org-agenda-finalize-hook #'my/org-agenda-annotate-done-clocksum))
+(setq org-archive-location "~/src/org/work.org_archive::datetree/")
+
+(add-hook 'org-after-todo-state-change-hook #'my/org-auto-clock-on-state-change)
+
+;; Color-code agenda entries by tag
+(add-hook 'org-agenda-finalize-hook #'my/org-agenda-color-by-tag)
+(add-hook 'org-agenda-finalize-hook #'my/org-agenda-annotate-done-clocksum)
 
 (defun my/org-auto-clock-on-state-change ()
   "Auto-start clock on INPROCESS, auto-stop on DONE/PAUSE/CANCELED.
@@ -162,7 +169,6 @@ Also auto-set :Resolved: timestamp on incidents when marked DONE."
 
 (defun my/org-day-progress ()
   "Return a string showing clocked hours today as a progress bar (target: 8h)."
-  (require 'org-clock)
   (let* ((today (format-time-string "%Y-%m-%d"))
          (total-minutes 0)
          (work-file (expand-file-name "~/src/org/work.org")))
@@ -414,9 +420,9 @@ Optionally start working on it immediately."
     (format-time-string "%Y-%m-%d" date)))
 
 (defun my/org-standup ()
-  "Generate standup report from last workday's clocked entries.  Copy to kill-ring."
+  "Generate standup report from last workday's clocked entries.
+Copy it to `kill-ring'."
   (interactive)
-  (require 'org-clock)
   (let* ((date-str (my/org-standup--last-workday))
          (today-str (format-time-string "%Y-%m-%d"))
          (work-file (expand-file-name "~/src/org/work.org"))
@@ -478,7 +484,7 @@ Optionally start working on it immediately."
                (existing nil))
            (when (re-search-forward "^\\*\\* Standup " end t)
              (setq existing t)
-             (unless (y-or-n-p "Standup уже есть. Перезаписать? ")
+             (unless (y-or-n-p "Standup уже есть.  Перезаписать? ")
                (user-error "Отменено")))
            (if existing
                (progn
@@ -588,7 +594,7 @@ Prompts for :Project: on entries that lack it before archiving."
   (let ((start (point))
         (projects (my/org-collect-project-names)))
     (unless (or projects
-                (y-or-n-p "No projects in projects.org. Archive without :Project:? "))
+                (y-or-n-p "No projects in projects.org.  Archive without :Project:? "))
       (user-error "Add projects to projects.org first"))
     (save-excursion
       (let ((end (copy-marker (save-excursion (org-end-of-subtree t) (point)))))
@@ -618,9 +624,8 @@ Prompts for :Project: on entries that lack it before archiving."
 
 (defun my/org-weekly-review ()
   "Generate weekly summary: hours per day, top tasks, unplanned %.
-Shows in *Weekly Review* buffer and copies to kill-ring."
+Shows in *Weekly Review* buffer and copies to `kill-ring'."
   (interactive)
-  (require 'org-clock)
   (let* ((work-file (expand-file-name "~/src/org/work.org"))
          (today (current-time))
          (dow (string-to-number (format-time-string "%u" today)))
@@ -698,7 +703,7 @@ Shows in *Weekly Review* buffer and copies to kill-ring."
 When user says yes, show daily summary and abort quit."
   (if (and (>= (string-to-number (format-time-string "%H")) 17)
            (my/org-daily-heading)
-           (y-or-n-p "Конец дня. Показать итоги? "))
+           (y-or-n-p "Конец дня.  Показать итоги? "))
       (let ((buf (find-file-noselect (expand-file-name "~/src/org/work.org"))))
         (switch-to-buffer buf)
         (goto-char (marker-position (my/org-daily-heading)))
@@ -822,7 +827,6 @@ When user says yes, show daily summary and abort quit."
   "Export clocked time for the last N DAYS as an org table.
 Defaults to 5 (work week)."
   (interactive "P")
-  (require 'org-clock)
   (let* ((days (or days 5))
          (work-file (expand-file-name "~/src/org/work.org"))
          (rows nil))
