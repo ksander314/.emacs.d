@@ -37,7 +37,7 @@ has read.
    every added line that spawns a process, opens a URL, evals, reads
    credentials or the environment, or writes and deletes files. A changed
    `Package-Requires` line means a new or newer dependency. Scrutinise by
-   privilege — a theme needs no reading; `agent-shell`, `gptel`, `magit`
+   privilege — a theme needs no reading; `agent-shell`, `acp.el`, `magit`
    and `straight.el` deserve real attention. To leave a package out, drop
    its line from the plan:
 

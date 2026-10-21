@@ -16,7 +16,6 @@
  ("exec-path-from-shell" . "6146fdc16e9882df270be7e58ae8d628032d6bc4")
  ("gnu-elpa-mirror" . "01092794cb0eaaf18ed44a50c6b84954feec581f")
  ("go-mode.el" . "3a71d28ab47df685e54ca6046a7a3dd3e28b682c")
- ("gptel" . "cd372be78471f948c3c2fddf652e511e39932f7c")
  ("jira.el" . "ea01072d1492e0d0d5832ede596655c8bcc9e4ed")
  ("jsonrpc" . "d8143c52679eaeebcca26dd41e015dc73d167b49")
  ("llama" . "6850d0c91b629da14fdff2300c222289d1a0029a")

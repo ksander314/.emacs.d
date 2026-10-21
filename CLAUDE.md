@@ -31,7 +31,6 @@ init-org           Org agenda (d=dashboard, u=unplanned, i=in-progress, r=review
                    standup, code review journal (C-c R), decision log (C-c D), 1-on-1 notes (C-c 1), incident
                    log with auto-resolve (C-c !), timesheet (C-c T), energy tracker (C-c E)
 init-git           magit (C-c g g), diff-hl
-init-gptel         gptel with OpenAI + Gemini backends; system prompt tuned for Go backend engineering
 init-agent-shell   agent-shell (C-c A; C-c O for OpenCode) + persistent alert stack; M-RET submits through
                    agent-shell-submit; chat labels show the first name of user-full-name. Sleep during a turn
                    is agent-shell's own agent-shell-inhibit-system-sleep

@@ -39,7 +39,6 @@
 (require 'init-git)
 (require 'init-rust)
 (require 'init-zig)
-(require 'init-gptel)
 (require 'init-display)
 (require 'init-eshell)
 (require 'init-agent-shell)
