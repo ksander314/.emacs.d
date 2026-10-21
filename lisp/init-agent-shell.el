@@ -68,7 +68,16 @@ when no description is advertised."
           concrete
         name)))
   (advice-add 'agent-shell-get-model-name :around
-              #'my/agent-shell-concrete-model-name))
+              #'my/agent-shell-concrete-model-name)
+  (defun my/agent-shell-chat-label (label)
+    "Draw chat LABEL like the default badge, with my first name for \"Me\"."
+    (let ((user (eq (map-elt label :role) 'user)))
+      (propertize (format " %s " (or (and user (car (split-string user-full-name)))
+                                     (map-elt label :text)))
+                  'face (if user
+                            'agent-shell-chat-me-label
+                          'agent-shell-chat-agent-label))))
+  (setq agent-shell-chat-label-function #'my/agent-shell-chat-label))
 
 
 ;;; Stop the graphical header from cutting its own text off
