@@ -77,23 +77,7 @@ when no description is advertised."
                   'face (if user
                             'agent-shell-chat-me-label
                           'agent-shell-chat-agent-label))))
-  (setq agent-shell-chat-label-function #'my/agent-shell-chat-label)
-  (setq agent-shell-mcp-servers
-        `(((name . "elisp-dev")
-           (command . ,(expand-file-name "straight/build/mcp-server-lib/emacs-mcp-stdio.sh"
-                                         user-emacs-directory))
-           (args . ("--init-function=elisp-dev-mcp-enable"
-                    "--stop-function=elisp-dev-mcp-disable"
-                    "--server-id=elisp-dev-mcp"
-                    ,(concat "--socket=" (expand-file-name server-name server-socket-dir))))
-           (env . ())))))
-
-(use-package elisp-dev-mcp
-  :defer t
-  :config
-  (setq elisp-dev-mcp-additional-allowed-dirs
-        (list (expand-file-name "straight/repos/" user-emacs-directory)))
-  (mcp-server-lib-start))
+  (setq agent-shell-chat-label-function #'my/agent-shell-chat-label))
 
 
 ;;; Stop the graphical header from cutting its own text off

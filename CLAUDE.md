@@ -33,9 +33,7 @@ init-org           Org agenda (d=dashboard, u=unplanned, i=in-progress, r=review
 init-git           magit (C-c g g), diff-hl
 init-agent-shell   agent-shell (C-c A; C-c O for OpenCode) + persistent alert stack; M-RET submits through
                    agent-shell-submit; chat labels show the first name of user-full-name. Sleep during a turn
-                   is agent-shell's own agent-shell-inhibit-system-sleep. Every session gets the read-only
-                   elisp-dev MCP server (elisp-dev-mcp over mcp-server-lib's emacs-mcp-stdio.sh, which reaches
-                   this Emacs through emacsclient --socket): docs, definitions and Info of the running Emacs
+                   is agent-shell's own agent-shell-inhibit-system-sleep
 init-display       Relative line numbers, trailing whitespace highlighting
 init-eshell        Custom prompt, per-command history append, C-c C-r for consult-history
 init-keystroke-log Records keystrokes to keystroke-log.csv; my/klog-typo-report, my/klog-char-freq-report,
