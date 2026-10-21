@@ -9,15 +9,39 @@
 ;; this file only defines functions: jira.el is not installed and no key is
 ;; bound (see the end of the file).
 
+(require 'auth-source)
+(require 'init-utils)
+(require 'iso8601)
+(require 'org)
+(require 'org-clock)
+(require 'seq)
+
+(declare-function agent-shell-anthropic-make-claude-code-config "agent-shell-anthropic")
+(declare-function agent-shell-insert "agent-shell")
+(declare-function agent-shell-start "agent-shell")
+(declare-function jira-actions-change-issue-menu "jira-actions" nil t)
+(declare-function jira-actions-open-issue "jira-actions")
+(declare-function jira-api-call "jira-api")
+(declare-function jira-api-search "jira-api")
+(declare-function jira-detail-show-issue "jira-detail")
+(declare-function jira-utils-marked-item "jira-utils")
+(declare-function my/org-ensure-daily-heading "init-org")
+(declare-function tablist-minor-mode "tablist")
+
+(defvar agent-shell-display-action)
+(defvar agent-shell-session-strategy)
+(defvar jira-base-url)
+(defvar jira-detail-mode-map)
+(defvar jira-issues--loading-p)
+(defvar jira-issues-fields)
+(defvar jira-issues-key-summary-map)
+(defvar jira-issues-mode-map)
+
 (defun my/jira-url-from-authinfo ()
   "\"https://\" and the *.atlassian.net machine of ~/.authinfo, or nil.
 The token's line already names the site, so the address stays out of this
 repository.  No trailing slash: jira.el strips \"https://\" and looks the
 rest up as that same machine to find the token."
-  ;; Not autoloaded, and this runs while init.el loads, before anything else
-  ;; has pulled auth-source in.
-  (require 'auth-source)
-  (require 'seq)
   (condition-case err
       (when-let* ((host (seq-find (lambda (host)
                                     (and (stringp host) (string-suffix-p ".atlassian.net" host)))
@@ -63,13 +87,15 @@ order as seen on 2026-10-05; if the board disagrees, fix it here.")
       -1))
 
 (defun my/jira-priority (name)
-  "1 for \"P1 – Critical\" … 5 for \"P5 – Background\", 9 for anything else."
+  "Rank of priority NAME: 1 for \"P1 – Critical\" … 5 for \"P5 – Background\".
+Anything else is 9."
   (if (and name (string-match "\\`P\\([1-9]\\)" name))
       (string-to-number (match-string 1 name))
     9))
 
 (defun my/jira-surname-first (name)
-  "\"Aleksandr Stepanenko\" -> \"Stepanenko Aleksandr\"."
+  "NAME with the surname first.
+For example, \"Aleksandr Stepanenko\" -> \"Stepanenko Aleksandr\"."
   (let ((words (split-string (or name "") " " t)))
     (if (cdr words)
         (string-join (cons (car (last words)) (butlast words)) " ")
@@ -129,7 +155,8 @@ Needs the issue's changelog."
     count))
 
 (defun my/jira-board-order (a b)
-  "Non-nil if issue A goes first: further right on the board, then higher priority."
+  "Non-nil if issue A goes before B.
+Further right on the board goes first, then higher priority."
   (let ((column-a (my/jira-column (let-alist a .fields.status.name)))
         (column-b (my/jira-column (let-alist b .fields.status.name))))
     (if (/= column-a column-b)
@@ -193,8 +220,8 @@ Needs the issue's changelog."
   (seq-position my/jira-moves move (lambda (entry label) (equal (car entry) label))))
 
 (defun my/jira-standing (issue)
-  "Seconds ISSUE has stood in its current status, counted from creation if it
-never moved."
+  "Seconds ISSUE has stood in its current status.
+Counted from creation if it never moved."
   (- (float-time)
      (or (car (my/jira-last-status-change issue))
          (my/jira-time (let-alist issue .fields.created))
@@ -211,7 +238,7 @@ never moved."
   (member (let-alist issue .fields.status.name) '("Develop" "In Progress")))
 
 (defun my/jira-move-order (a b)
-  "Non-nil if my issue A goes first.
+  "Non-nil if my issue A goes before B.
 Issues being developed come first of all.  My moves follow, in the order of
 `my/jira-moves', then by priority.  Issues waiting for others come last, the
 longest standing first."
@@ -248,17 +275,17 @@ longest standing first."
                       (lambda (column n) (equal (car column) n)))))
 
 (defun my/jira-sort-status (a b)
-  "Tabulated-list predicate: order rows by their status's board column."
+  "Tabulated-list predicate: row A before B by their status's board column."
   (< (my/jira-column (my/jira-cell a "Статус"))
      (my/jira-column (my/jira-cell b "Статус"))))
 
 (defun my/jira-sort-returns (a b)
-  "Tabulated-list predicate: order rows by how often they came back."
+  "Tabulated-list predicate: row A before B by how often they came back."
   (< (string-to-number (my/jira-cell a "Возвр"))
      (string-to-number (my/jira-cell b "Возвр"))))
 
 (defun my/jira-sort-move (a b)
-  "Tabulated-list predicate: order rows as `my/jira-moves' lists the moves."
+  "Tabulated-list predicate: row A before B as `my/jira-moves' lists the moves."
   (< (my/jira-move-rank (my/jira-cell a "Ход"))
      (my/jira-move-rank (my/jira-cell b "Ход"))))
 
@@ -267,7 +294,7 @@ longest standing first."
   (* (string-to-number age) (if (string-suffix-p "д" age) 24 1)))
 
 (defun my/jira-sort-age (a b)
-  "Tabulated-list predicate: order rows by how long they have stood."
+  "Tabulated-list predicate: row A before B by how long they have stood."
   (< (my/jira-age-hours (my/jira-cell a "Стоит"))
      (my/jira-age-hours (my/jira-cell b "Стоит"))))
 
@@ -317,7 +344,8 @@ longest standing first."
 (defvar-local my/jira-list-sprint-line nil "The sprint line, once Jira has answered.")
 
 (define-derived-mode my/jira-list-mode tabulated-list-mode "Jira"
-  "A list of Jira issues: RET details, C status, O browser, a agent-shell, g refresh."
+  "A list of Jira issues.
+RET details, C status, O browser, a `agent-shell', g refresh."
   :interactive nil
   (setq tabulated-list-padding 2)
   (add-hook 'tabulated-list-revert-hook #'my/jira-list-fetch nil t)
@@ -511,7 +539,7 @@ Jira's endDate is the closing Monday morning, its startDate the planning hour."
   "Where `my/jira-agent-shell' starts Claude unless given a prefix argument.")
 
 (defvar my/jira-agent-shells (make-hash-table :test #'equal)
-  "Issue key -> its agent-shell buffer, so a second press returns to it.")
+  "Issue key -> its `agent-shell' buffer, so a second press returns to it.")
 
 (defconst my/jira-agent-display
   '((display-buffer-reuse-window display-buffer-pop-up-window)
@@ -527,7 +555,7 @@ Jira's endDate is the closing Monday morning, its startDate the planning hour."
          (gethash key jira-issues-key-summary-map))))
 
 (defun my/jira-agent-shell (key &optional directory)
-  "Open a Claude agent-shell about Jira issue KEY, working in DIRECTORY.
+  "Open a Claude `agent-shell' about Jira issue KEY, working in DIRECTORY.
 The issue's key, summary and link wait in the prompt for a question;
 nothing is sent.  Pressed again on the same issue, returns to its shell.
 With a prefix argument, asks for DIRECTORY instead of using
