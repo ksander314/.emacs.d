@@ -32,8 +32,9 @@ init-org           Org agenda (d=dashboard, u=unplanned, i=in-progress, r=review
                    log with auto-resolve (C-c !), timesheet (C-c T), energy tracker (C-c E)
 init-git           magit (C-c g g), diff-hl
 init-gptel         gptel with OpenAI + Gemini backends; system prompt tuned for Go backend engineering
-init-agent-shell   agent-shell (C-c A; C-c O for OpenCode) + persistent alert stack; holds a macOS no-sleep
-                   assertion (caffeinate) while a turn runs
+init-agent-shell   agent-shell (C-c A; C-c O for OpenCode) + persistent alert stack; M-RET submits through
+                   agent-shell-submit; chat labels show the first name of user-full-name. Sleep during a turn
+                   is agent-shell's own agent-shell-inhibit-system-sleep
 init-display       Relative line numbers, trailing whitespace highlighting
 init-eshell        Custom prompt, per-command history append, C-c C-r for consult-history
 init-keystroke-log Records keystrokes to keystroke-log.csv; my/klog-typo-report, my/klog-char-freq-report,
