@@ -20,7 +20,7 @@ Package updates go through `bin/straight-update` (check, review, apply), as READ
 Module             Purpose
 ──────────────────────────────────────────────────────────────────────────────
 init-utils         File utilities (my/delete-this-file, my/rename-this-file-and-buffer, my/browse-current-file),
-                   C-c f opens file:line refs, my/straight-pending-updates previews package upgrades
+                   C-c f opens file:line refs
 init-go            Go: eglot + gopls (staticcheck), auto-format/organize-imports on save, my/go-debug-test for dape
 init-rust          Rust: rust-mode + eglot + rust-analyzer (clippy), auto-format on save
 init-zig           Zig: zig-mode + eglot (zls, if installed), auto-format on save
@@ -77,7 +77,7 @@ init-jira          Jira over jira.el; the site address and the token both come f
 - Language setup functions follow the pattern `my/LANG-setup`, added via `add-hook` to both classic and `-ts-` mode hooks (e.g., `go-mode-hook` and `go-ts-mode-hook`).
 - LSP is via built-in **eglot** (not lsp-mode). Eglot keybindings are set globally in `init.el`: `C-c C-g` (definitions), `C-c C-r` (references), `C-c C-a` (code actions), `C-c C-n` (rename).
 - Completion stack: **vertico** (minibuffer) + **orderless** (matching) + **marginalia** (annotations) + **consult** (search/navigation) + **corfu** (in-buffer).
-- Tree-sitter via **treesit-auto** (`treesit-auto-install t`); grammars for go/c/cpp/rust/zig/python/yaml/toml/json/bash are ensured via idle timer on startup.
+- Tree-sitter via **treesit-auto** (`treesit-auto-install nil`, so nothing is installed on demand); an idle timer on startup installs the go/c/cpp/rust/zig/python/yaml/toml/json/bash grammars when they are missing.
 - Auth credentials read from `~/.authinfo` via `auth-source`.
 - External packages loaded conditionally from `~/src/`: carp/lisp/agent.el, eshboard (on `C-c k`), kbdtr/kbdtr.el (keyboard cheat sheet: `C-c K` finds how to type a char, `C-c L` shows the layers).
 - Input method: `cyrillic-dvorak-programming` (defined in `lisp/cyrillic-dvorak-programming.el`), with **reverse-im** so shortcuts work regardless of active input method.
