@@ -1,4 +1,9 @@
 ;;; init-git.el --- Git configuration -*- lexical-binding: t -*-
+
+;;; Commentary:
+
+;;; Code:
+
 (declare-function global-diff-hl-mode "diff-hl")
 (declare-function markdown-toggle-markup-hiding "markdown-mode")
 (declare-function markdown-update-header-faces "markdown-mode")
@@ -41,3 +46,4 @@
   (markdown-command "pandoc -f markdown -t html5"))
 
 (provide 'init-git)
+;;; init-git.el ends here

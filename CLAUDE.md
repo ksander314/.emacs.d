@@ -73,7 +73,8 @@ init-jira          Jira over jira.el; the site address and the token both come f
 
 ## Key conventions
 
-- All modules use `;;; filename.el --- Description -*- lexical-binding: t -*-` header and end with `(provide 'module-name)`.
+- All modules use the standard Emacs Lisp file layout: the `;;; filename.el --- Description -*- lexical-binding: t -*-` header, `;;; Commentary:` (the file's notes, may be empty), `;;; Code:`, and at the end `(provide 'module-name)` followed by `;;; filename.el ends here`.
+- Flymake (byte-compile and checkdoc) reports nothing in any module; keep it that way. A module declares what it uses: `require` for libraries that are always installed and cheap, `declare-function` and a bare `defvar` for ones that load later. A declaration does not load anything, so a call to a declared function needs something that loads its library first.
 - Custom functions are prefixed `my/`. Interactive commands use `(interactive)`.
 - Language setup functions follow the pattern `my/LANG-setup`, added via `add-hook` to both classic and `-ts-` mode hooks (e.g., `go-mode-hook` and `go-ts-mode-hook`).
 - LSP is via built-in **eglot** (not lsp-mode). Eglot keybindings are set globally in `init.el`: `C-c C-g` (definitions), `C-c C-r` (references), `C-c C-a` (code actions), `C-c C-n` (rename).

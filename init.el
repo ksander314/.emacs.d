@@ -1,4 +1,9 @@
 ;;; init.el --- Main init -*- lexical-binding: t -*-
+
+;;; Commentary:
+
+;;; Code:
+
 (setq inhibit-startup-screen t)
 (setq initial-scratch-message "")
 (setq visible-bell t)
@@ -262,3 +267,4 @@ overwrite org-clock-save.el on exit."
                      gcs-done)
             (when (display-graphic-p)
               (run-with-idle-timer 1 nil (lambda () (org-agenda nil "d"))))))
+;;; init.el ends here

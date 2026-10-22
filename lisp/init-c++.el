@@ -1,7 +1,13 @@
 ;;; init-c++.el --- C++ configuration -*- lexical-binding: t -*-
+
+;;; Commentary:
+
+;;; Code:
+
 (setq-default c-basic-offset 4)
 
 (defun my/c++-setup ()
+  "Set up a C++ buffer: eglot, brace offsets, an 80-column whitespace limit."
   (condition-case err (eglot-ensure)
     (error (message "eglot-ensure failed in c++: %s" err)))
   (c-set-offset 'substatement-open 0)
@@ -24,3 +30,4 @@
 (add-hook 'c-ts-mode-hook 'hs-minor-mode)
 
 (provide 'init-c++)
+;;; init-c++.el ends here

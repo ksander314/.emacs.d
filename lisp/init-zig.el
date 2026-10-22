@@ -1,4 +1,9 @@
 ;;; init-zig.el --- Zig configuration -*- lexical-binding: t -*-
+
+;;; Commentary:
+
+;;; Code:
+
 (declare-function eglot-format-buffer "eglot")
 (declare-function eglot-inlay-hints-mode "eglot")
 (declare-function eglot-managed-p "eglot")
@@ -98,3 +103,4 @@
   (add-hook hook #'my/zig-setup))
 
 (provide 'init-zig)
+;;; init-zig.el ends here

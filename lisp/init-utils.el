@@ -1,4 +1,9 @@
 ;;; init-utils.el --- Utility functions -*- lexical-binding: t -*-
+
+;;; Commentary:
+
+;;; Code:
+
 (declare-function ffap-string-at-point "ffap")
 
 (defun my/delete-this-file ()
@@ -50,3 +55,4 @@
   (format "%d:%02d" (/ minutes 60) (% minutes 60)))
 
 (provide 'init-utils)
+;;; init-utils.el ends here

@@ -1,4 +1,7 @@
 ;;; cyrillic-dvorak-programming.el --- Cyrillic ЙЦУКЕН input for dvorak-programming -*- lexical-binding: t -*-
+
+;;; Commentary:
+
 ;;;; $Id: cyrillic-dvorak-programming.el,v 0.1 2013/11/07 07:06:31 ksander314 Exp $
 ;;;; $Author: ksander314 $
 ;;;; Distributed under the GPL
@@ -6,6 +9,8 @@
 ;;;; If you're using `dvorak-programming' keyboard layout and also need writing russian in
 ;;;; the `jcuken' layout, you may find this package helpful!
 ;;;; Based on 'cyrillic-dvorak' by kirill.
+
+;;; Code:
 
 (require 'quail)
 
@@ -118,3 +123,4 @@
  ("Z" ?,))
 
 (provide 'cyrillic-dvorak-programming)
+;;; cyrillic-dvorak-programming.el ends here

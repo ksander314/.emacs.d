@@ -1,8 +1,12 @@
 ;;; init-kube.el --- Kubernetes TRAMP integration -*- lexical-binding: t -*-
 
+;;; Commentary:
+
 ;; Custom TRAMP method for kubectl exec with context and namespace support.
 ;; Path syntax: /kube:NAMESPACE.CONTEXT@POD:/path/to/file
 ;; Example:     /kube:tv-dashboard.dal2.staging@dashboard-testing-abc123:/app/main.go
+
+;;; Code:
 
 (defvar tramp-methods)
 
@@ -54,3 +58,4 @@ Prompts for context, namespace, pod, then lets you browse with completion."
     (find-file (read-file-name "File: " prefix))))
 
 (provide 'init-kube)
+;;; init-kube.el ends here

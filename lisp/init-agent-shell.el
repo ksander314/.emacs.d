@@ -1,4 +1,9 @@
 ;;; init-agent-shell.el --- Agent-shell configuration -*- lexical-binding: t -*-
+
+;;; Commentary:
+
+;;; Code:
+
 (require 'map)
 
 (declare-function agent-shell--current-model-id "agent-shell-config")
@@ -331,3 +336,4 @@ q            dismiss all alerts"
 (add-hook 'window-selection-change-functions #'my/agent-alert-auto-dismiss)
 
 (provide 'init-agent-shell)
+;;; init-agent-shell.el ends here

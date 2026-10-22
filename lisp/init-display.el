@@ -1,4 +1,9 @@
 ;;; init-display.el --- Display configuration -*- lexical-binding: t -*-
+
+;;; Commentary:
+
+;;; Code:
+
 (defvar display-line-numbers-type)
 
 (setq display-line-numbers-type 'relative)
@@ -22,3 +27,4 @@
   (add-hook hook 'disable-trailing-whitespace))
 
 (provide 'init-display)
+;;; init-display.el ends here

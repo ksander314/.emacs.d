@@ -1,5 +1,10 @@
 ;;; init-keystroke-log.el --- Keystroke analytics -*- lexical-binding: t -*-
+
+;;; Commentary:
+
 ;; Frequencies, bigram timing, typo detection, chord/mode/layout context
+
+;;; Code:
 
 (defvar my/klog-file (expand-file-name "keystroke-log.csv" user-emacs-directory))
 (defvar my/klog-last-key nil)
@@ -39,7 +44,8 @@
     left-fringe right-fringe left-margin right-margin)
   "Basic types (`event-basic-type') of events that do not come from typing.
 Matching on the basic type also catches every variant the list above
-misses: double-down-mouse-1, S-wheel-right, C-mouse-1 and so on.")
+misses: double clicks, wheel events with a modifier, clicks with Control
+held, and so on.")
 
 (defun my/klog-set-layout (name)
   "Set the macOS layout NAME (e.g. \"ABC\", \"RussianWin\").
@@ -55,9 +61,10 @@ A change is also logged as a row of its own, see `my/klog--log-switch'."
         (my/klog--log-switch old name)))))
 
 (defun my/klog--log-switch (old new)
-  "Log a switch of the input source from OLD to NEW: event \"layout\", key NEW,
-prev_key OLD, interval since the last key.  It leaves `my/klog-last-time'
-alone, so the intervals between keys stay what they were."
+  "Log a switch of the input source from OLD to NEW.
+The row has event \"layout\", key NEW, prev_key OLD and the interval since
+the last key.  It leaves `my/klog-last-time' alone, so the intervals
+between keys stay what they were."
   (my/klog-init-buffer)
   (let ((now (float-time)))
     (with-current-buffer my/klog-buffer
@@ -95,6 +102,7 @@ alone, so the intervals between keys stay what they were."
           (message "Keystroke log: rotated old-schema file to %s" archived))))))
 
 (defun my/klog-init-buffer ()
+  "Create the buffer that collects rows until `my/klog-flush', once."
   (unless my/klog-buffer
     (my/klog--migrate-old-file)
     (setq my/klog-buffer (generate-new-buffer " *keystroke-log*"))
@@ -103,6 +111,7 @@ alone, so the intervals between keys stay what they were."
         (insert my/klog-header)))))
 
 (defun my/klog-flush ()
+  "Append the collected rows to `my/klog-file' and empty the buffer."
   (when (and my/klog-buffer (buffer-live-p my/klog-buffer))
     (with-current-buffer my/klog-buffer
       (when (> (buffer-size) 0)
@@ -110,7 +119,7 @@ alone, so the intervals between keys stay what they were."
         (erase-buffer)))))
 
 (defun my/klog--csv-sanitize (s)
-  "Make string safe for one CSV cell."
+  "Make S safe for one CSV cell."
   (cond ((or (null s) (string= s "")) "")
         ((string= s ",") "COMMA")
         ((string= s "\n") "RET")
@@ -141,6 +150,7 @@ alone, so the intervals between keys stay what they were."
           nil))))
 
 (defun my/klog-record ()
+  "Log the command just run as one row."
   ;; An error escaping a post-command-hook function makes Emacs remove it, and
   ;; logging stops for the rest of the session; demoted, it costs one row.
   (with-demoted-errors "klog: %S"
@@ -337,7 +347,8 @@ alone, so the intervals between keys stay what they were."
     (my/klog--show-hash-report dist "macOS Layout Distribution")))
 
 (defun my/klog--show-hash-report (hash title &optional sort-order)
-  "Display hash table as sorted report in a buffer."
+  "Show the counts in HASH under TITLE, largest first.
+With SORT-ORDER `ascending', smallest first."
   (let ((items nil))
     (maphash (lambda (k v) (push (cons k v) items)) hash)
     (setq items (sort items (lambda (a b)
@@ -356,3 +367,4 @@ alone, so the intervals between keys stay what they were."
       (display-buffer (current-buffer)))))
 
 (provide 'init-keystroke-log)
+;;; init-keystroke-log.el ends here

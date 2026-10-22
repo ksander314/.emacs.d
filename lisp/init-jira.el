@@ -1,5 +1,7 @@
 ;;; init-jira.el --- Jira: my work and my reviews (jira.el) -*- lexical-binding: t -*-
 
+;;; Commentary:
+
 ;; C-c j shows two lists: what is assigned to me, and what waits for my review.
 ;; C-c J is jira.el's own list of the team sprint.  Its filter is a transient
 ;; saved value, kept in ~/.emacs.d/transient/values.el (not in git): change it
@@ -8,6 +10,8 @@
 ;; The same config runs at home, where ~/.authinfo holds no Jira token.  There
 ;; this file only defines functions: jira.el is not installed and no key is
 ;; bound (see the end of the file).
+
+;;; Code:
 
 (require 'auth-source)
 (require 'init-utils)
@@ -751,3 +755,4 @@ nowhere to put it.  With nothing clocked, asks for the time."
      '(:key :issue-type-name :status-name :assignee-name :parent-key :summary))))
 
 (provide 'init-jira)
+;;; init-jira.el ends here

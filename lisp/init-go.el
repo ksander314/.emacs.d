@@ -1,4 +1,9 @@
 ;;; init-go.el --- Go configuration -*- lexical-binding: t -*-
+
+;;; Commentary:
+
+;;; Code:
+
 (declare-function eglot-code-action-organize-imports "eglot" (beg &optional end) t)
 (declare-function eglot-format-buffer "eglot")
 (declare-function eglot-inlay-hints-mode "eglot")
@@ -74,3 +79,4 @@
   (add-hook hook #'my/go-setup))
 
 (provide 'init-go)
+;;; init-go.el ends here

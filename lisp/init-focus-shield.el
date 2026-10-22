@@ -1,5 +1,9 @@
 ;;; init-focus-shield.el --- Interrupt shield with context save/restore -*- lexical-binding: t -*-
 
+;;; Commentary:
+
+;;; Code:
+
 (eval-when-compile (require 'org-macs))
 (require 'init-utils)
 
@@ -200,3 +204,4 @@ clocked, NOTE what was being done."
       (display-buffer (current-buffer)))))
 
 (provide 'init-focus-shield)
+;;; init-focus-shield.el ends here

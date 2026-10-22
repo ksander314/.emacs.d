@@ -1,4 +1,9 @@
 ;;; init-org.el --- Org-mode configuration -*- lexical-binding: t -*-
+
+;;; Commentary:
+
+;;; Code:
+
 (require 'org)
 (require 'org-agenda)
 (require 'org-capture)
@@ -907,3 +912,4 @@ Defaults to 5 (work week)."
     (message "Cursor on table. Use C-c \" to plot with orgtbl or add a #+PLOT line.")))
 
 (provide 'init-org)
+;;; init-org.el ends here

@@ -1,4 +1,9 @@
 ;;; init-tatr.el --- tatr task tracker: local defaults and keys -*- lexical-binding: t -*-
+
+;;; Commentary:
+
+;;; Code:
+
 (require 'tatr)
 
 ;; Upstream starts every task at `scope', which is rexim's own tag and is
@@ -18,3 +23,4 @@
 (define-key my/tatr-map (kbd "y") #'tatr-copy-huid-to-clipboard)
 
 (provide 'init-tatr)
+;;; init-tatr.el ends here

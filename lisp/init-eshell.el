@@ -1,4 +1,9 @@
 ;;; init-eshell.el --- Eshell configuration -*- lexical-binding: t -*-
+
+;;; Commentary:
+
+;;; Code:
+
 (require 'ring)
 
 (declare-function consult-history "consult")
@@ -51,3 +56,4 @@
   (add-hook 'eshell-post-command-hook #'my/eshell-append-to-history))
 
 (provide 'init-eshell)
+;;; init-eshell.el ends here

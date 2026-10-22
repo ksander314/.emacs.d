@@ -1,4 +1,9 @@
 ;;; init-rust.el --- Rust configuration -*- lexical-binding: t -*-
+
+;;; Commentary:
+
+;;; Code:
+
 (declare-function cargo-minor-mode "cargo")
 (declare-function eglot-format-buffer "eglot")
 (declare-function eglot-inlay-hints-mode "eglot")
@@ -34,3 +39,4 @@
   (add-hook hook #'my/rust-setup))
 
 (provide 'init-rust)
+;;; init-rust.el ends here
