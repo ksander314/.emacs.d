@@ -24,6 +24,7 @@ init-utils         File utilities (my/delete-this-file, my/rename-this-file-and-
 init-go            Go: eglot + gopls (staticcheck), auto-format/organize-imports on save, my/go-debug-test for dape
 init-rust          Rust: rust-mode + eglot + rust-analyzer (clippy), auto-format on save
 init-zig           Zig: zig-mode + eglot (zls, if installed), auto-format on save
+init-scheme        Guile: geiser + geiser-guile; .scm buffers get geiser-mode (C-c C-z REPL, C-c C-d C-d docs)
 init-c++           C++: eglot + clangd (--header-insertion=never)
 init-org           Org agenda (d=dashboard, u=unplanned, i=in-progress, r=review open items), capture (t=task,
                    j=jira, p=project), clock automation, project association (my/org-set-project), meeting notes

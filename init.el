@@ -27,6 +27,8 @@
   (load bootstrap-file nil 'nomessage))
 (straight-use-package 'use-package)
 (setq straight-use-package-by-default t)
+(setq straight-built-in-pseudo-packages
+      (append '(project xref) straight-built-in-pseudo-packages))
 
 ;; Auth
 (setq auth-sources '("~/.authinfo"))
@@ -39,6 +41,7 @@
 (require 'init-git)
 (require 'init-rust)
 (require 'init-zig)
+(require 'init-scheme)
 (require 'init-display)
 (require 'init-eshell)
 (require 'init-agent-shell)
