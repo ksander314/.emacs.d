@@ -1,21 +1,28 @@
 ;;; init-focus-shield.el --- Interrupt shield with context save/restore -*- lexical-binding: t -*-
 
+(eval-when-compile (require 'org-macs))
+(require 'init-utils)
+
 (declare-function org-clocking-p "org-clock")
 (declare-function org-clock-in "org-clock")
 (declare-function org-clock-out "org-clock")
 (declare-function org-clock-goto "org-clock")
+(declare-function org-duration-to-minutes "org-duration")
 (declare-function org-todo "org")
 (declare-function org-get-heading "org")
-(declare-function org-with-wide-buffer "org-macs")
 (declare-function org-end-of-subtree "org")
 (declare-function org-up-heading-safe "org")
 (declare-function org-entry-get "org")
+
+(defvar org-clock-marker)
 
 (defvar my/focus-shield-file "~/src/org/interruptions.org"
   "File to log interruptions.")
 
 (defvar my/focus-shield--frozen-state nil
-  "Plist storing frozen context: :window-config :buffer :point :clock-marker :freeze-time :note :duration-marker.")
+  "Plist storing the frozen context.
+Keys: :window-config :buffer :point :clock-marker :freeze-time :note
+:duration-marker.")
 
 (defvar my/focus-shield--duration-marker nil
   "Marker pointing to the Duration property line of the current interruption entry.")
@@ -80,7 +87,9 @@ Use when interrupted.  Restore with `my/focus-thaw'."
     (setq my/focus-shield--frozen-state nil)))
 
 (defun my/focus-shield--log-entry (time buf pos clock-marker note)
-  "Append an interruption entry to `my/focus-shield-file'."
+  "Append an interruption at TIME to `my/focus-shield-file'.
+BUF and POS say where work stopped, CLOCK-MARKER the task that was
+clocked, NOTE what was being done."
   (let* ((date-heading (format-time-string "%Y-%m-%d" time))
          (time-str (format-time-string "%H:%M" time))
          (buffer-name (if (buffer-file-name buf)
