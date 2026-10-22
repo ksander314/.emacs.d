@@ -1,4 +1,10 @@
 ;;; init-git.el --- Git configuration -*- lexical-binding: t -*-
+(declare-function global-diff-hl-mode "diff-hl")
+(declare-function markdown-toggle-markup-hiding "markdown-mode")
+(declare-function markdown-update-header-faces "markdown-mode")
+
+(defvar markdown-hide-markup)
+
 (use-package diff-hl
   :ensure t
   :config (global-diff-hl-mode))
