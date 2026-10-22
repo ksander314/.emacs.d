@@ -1,8 +1,13 @@
 ;;; straight-smoke.el --- Load init.el in batch Emacs, print what fails -*- lexical-binding: t -*-
 
-;; Run by bin/straight-update. This Emacs shares ~/.emacs.d with the one in
+;;; Commentary:
+
+;; Run by bin/straight-update.  This Emacs shares ~/.emacs.d with the one in
 ;; use, so none of these may be left to write the desktop, the history files
 ;; or the keystroke log.
+
+;;; Code:
+
 (require 'desktop)
 (require 'server)
 (dolist (f '(desktop-kill desktop-save server-start))
@@ -15,14 +20,17 @@
   (defalias 'my/klog--refresh-layout #'ignore))
 
 (defun straight-smoke--report (what err)
+  "Print a smoke line saying WHAT failed with ERR."
   (princ (format "smoke: %s: %s\n" what (error-message-string err))))
 
 (defun straight-smoke--print-chain (_err)
+  "Print the require and load frames that led to the error being signaled."
   (dolist (frame (backtrace-frames))
     (when (memq (nth 1 frame) '(require load))
       (princ (format "smoke:   in (%s %S)\n" (nth 1 frame) (car (nth 2 frame)))))))
 
 (defun straight-smoke--cancel-timers ()
+  "Cancel every timer, so none fires while this Emacs waits on a process."
   (dolist (timer (append timer-list timer-idle-list nil))
     (cancel-timer timer)))
 
@@ -54,3 +62,4 @@
 
 (setq kill-emacs-hook nil)
 (princ "smoke: done\n")
+;;; straight-smoke.el ends here

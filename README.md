@@ -174,3 +174,25 @@ to push.
 
 Never `M-x package-install`. It bypasses the lockfile entirely and taints
 the session with package.el.
+
+## Checking Emacs Lisp
+
+Flymake byte-compiles and checkdocs every file in `lisp/` while it is
+open (`init.el` gets checkdoc only). Every module is clean, and
+
+```
+bin/check-elisp
+```
+
+keeps it so: it runs the same checks on `lisp/`, `bin/` and `init.el`,
+each file in its own Emacs so one module's load cannot hide another's
+missing `require`, prints `FILE:LINE: MESSAGE` and exits 1 on any
+finding. As a pre-push hook it checks the tip of each branch being
+pushed, only when the push changes a `.el` file, and stops the push on
+any finding. Once per clone:
+
+```
+ln -s ../../bin/check-elisp .git/hooks/pre-push
+```
+
+`git push --no-verify` skips it.

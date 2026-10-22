@@ -1,0 +1,58 @@
+#!/bin/sh
+set -eu
+
+usage() {
+    cat >&2 <<'EOF'
+usage: bin/check-elisp
+         Byte-compile and checkdoc every .el in lisp/ and bin/ except the
+         vendored tatr.el, and checkdoc init.el, each file in its own
+         Emacs, as Flymake does.  Prints FILE:LINE: MESSAGE and exits 1
+         if anything is found.
+       As .git/hooks/pre-push (ln -s ../../bin/check-elisp .git/hooks/pre-push)
+         it checks the tip of each pushed branch instead of the working
+         tree, and only when the push changes a .el file.
+         git push --no-verify skips it.
+EOF
+    exit 2
+}
+
+root=$(git rev-parse --show-toplevel)
+zero=0000000000000000000000000000000000000000
+tmp=$(mktemp -d)
+trap 'rm -rf "$tmp"' EXIT
+
+check_tree() {
+    {
+        echo "$1/init.el"
+        for f in "$1"/lisp/*.el "$1"/bin/*.el; do
+            case ${f##*/} in tatr.el) ;; *) echo "$f compile" ;; esac
+        done
+    } | xargs -P 8 -L 1 emacs -Q --batch -l "$root/bin/check-elisp.el" "$root" \
+          > "$tmp/out" 2>/dev/null && found=0 || found=1
+    sed "s|^$1/||" "$tmp/out"
+    return $found
+}
+
+if [ $# -eq 0 ]; then
+    check_tree "$root"
+    exit
+fi
+[ $# -eq 2 ] || usage
+
+failed=0
+while read -r _ local_sha _ remote_sha; do
+    [ "$local_sha" = "$zero" ] && continue
+    if [ "$remote_sha" != "$zero" ] &&
+           git -C "$root" cat-file -e "$remote_sha^{commit}" 2>/dev/null &&
+           git -C "$root" diff --quiet "$remote_sha" "$local_sha" -- '*.el'; then
+        continue
+    fi
+    rm -rf "$tmp/tree" && mkdir "$tmp/tree"
+    git -C "$root" archive "$local_sha" init.el lisp bin | tar -x -C "$tmp/tree"
+    echo "check-elisp: $(git -C "$root" log -1 --format='%h %s' "$local_sha")" >&2
+    check_tree "$tmp/tree" || failed=1
+done
+if [ $failed -ne 0 ]; then
+    echo "check-elisp: push stopped; fix the above or push with --no-verify" >&2
+    exit 1
+fi
