@@ -1,19 +1,32 @@
 ;;; init-eshell.el --- Eshell configuration -*- lexical-binding: t -*-
+(require 'ring)
+
+(declare-function consult-history "consult")
+(declare-function eshell/pwd "em-dirs")
+
+(defvar eshell-highlight-prompt)
+(defvar eshell-history-file-name)
+(defvar eshell-history-ring)
+(defvar eshell-prompt-function)
+(defvar eshell-prompt-regexp)
+
 (defface my/eshell-prompt-dir-face
   '((t :foreground "#0a64f5" :weight bold))
-  "Face for directory in eshell prompt.")
+  "Face for directory in eshell prompt."
+  :group 'eshell-prompt)
 
 (defface my/eshell-prompt-tail-face
   '((t :foreground "#ad071a" :weight bold))
-  "Face for tail of eshell prompt.")
+  "Face for tail of eshell prompt."
+  :group 'eshell-prompt)
 
 (defun my/eshell-current-dir-name ()
-  "Return the basename of `eshell/pwd` (handles ~ and / correctly)."
+  "Return the basename of `eshell/pwd' (handles ~ and / correctly)."
   (let ((p (abbreviate-file-name (eshell/pwd))))
     (file-name-nondirectory (directory-file-name p))))
 
 (defun my/eshell-prompt ()
-  "Prompt: [basename] $ "
+  "Return the Eshell prompt: the directory's basename in brackets, then ➜."
   (let* ((dir (propertize (my/eshell-current-dir-name) 'face 'my/eshell-prompt-dir-face))
          (tail (propertize "➜" 'face 'my/eshell-prompt-tail-face)))
     (concat "[" dir "] " tail " ")))
