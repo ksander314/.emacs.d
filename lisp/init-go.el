@@ -1,12 +1,19 @@
 ;;; init-go.el --- Go configuration -*- lexical-binding: t -*-
+(declare-function eglot-code-action-organize-imports "eglot" (beg &optional end) t)
+(declare-function eglot-format-buffer "eglot")
+(declare-function eglot-inlay-hints-mode "eglot")
+(declare-function eglot-managed-p "eglot")
+
 (use-package go-mode :ensure t :defer t)
 
 (defun my/go-eglot-organize-imports ()
+  "Organize the buffer's imports through eglot, when eglot manages it."
   (when (eglot-managed-p)
     (ignore-errors
       (eglot-code-action-organize-imports (point-min) (point-max)))))
 
 (defun my/go-before-save ()
+  "Format the buffer and organize imports through eglot before saving."
   (when (eglot-managed-p)
     (ignore-errors (eglot-format-buffer))
     (my/go-eglot-organize-imports)))
@@ -19,7 +26,7 @@
       (match-string-no-properties 1))))
 
 (defun my/go-test-current ()
-  "Run the Go test at point via `compile`."
+  "Run the Go test at point via `compile'."
   (interactive)
   (let ((name (my/go-test-name-at-point))
         (default-directory (file-name-directory (buffer-file-name))))
@@ -43,6 +50,7 @@
     (call-interactively 'dape)))
 
 (defun my/go-setup ()
+  "Set up a Go buffer: eglot, inlay hints, editing modes, test and dape keys."
   (condition-case err (eglot-ensure)
     (error (message "eglot-ensure failed in go: %s" err)))
   (ignore-errors (eglot-inlay-hints-mode))
