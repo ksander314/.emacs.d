@@ -107,17 +107,70 @@ The defense is the review at step 2, not the lockfile itself.
 
 ## Adding and removing packages
 
-Adding: write `(use-package foo)` in the relevant `lisp/init-*.el` module
-and restart — `straight-use-package-by-default` handles the clone. The
-clone is upstream's head and runs unread, so add only packages you trust.
+A new package runs with your rights just like an upgrade, so it gets
+the same 7 days and the same batch load before the running Emacs sees
+it:
+
+1. **Pick a commit.** `M-x straight-get-recipe` copies the recipe
+   straight will use into the kill ring; the clone URL follows from
+   `:fetcher` and `:repo`, or is `:url`. Take the newest first-parent
+   commit older than 7 days, as `check` does. A blobless bare clone
+   fetches the history and no files; if the recipe names a `:branch`,
+   log that one:
+
+   ```
+   git clone --bare --filter=blob:none https://codeberg.org/geiser/guile.git /tmp/guile.git
+   git -C /tmp/guile.git log --first-parent --format='%H %cs %s' -n 10
+   ```
+
+2. **Pin it and declare it.** Add `("guile" . "<sha>")` to
+   `straight/versions/default.el`, keeping the alphabetical order. The
+   key is the local repo, usually the last part of `:repo`, not the
+   package name: `geiser-guile` lives in `"guile"`. straight clones a
+   missing repo at its lockfile SHA, so this is the commit that lands.
+   Then write `(use-package foo :defer t)` in the relevant
+   `lisp/init-*.el` module; a new module also needs its `require` in
+   `init.el`.
+
+3. **Load it in batch**, from the repo root. straight clones and builds
+   the new repos; the running Emacs stays untouched:
+
+   ```
+   emacs -Q --batch -l bin/straight-smoke.el < /dev/null 2>&1 | grep -E '^smoke: |: (Warning|Error): |^Warning \('
+   ```
+
+   Read the lines that name the new package or its module.
+   `bin/straight-update apply` cannot do this step: it only moves repos
+   that already exist.
+
+4. **Pin what it pulled in.** Its dependencies were cloned at head,
+   unread. This lists every repo with no lockfile line:
+
+   ```
+   for d in straight/repos/*/; do r=$(basename "$d"); grep -qF "(\"$r\" ." straight/versions/default.el || echo "$r"; done
+   ```
+
+   If Emacs ships a dependency in a new enough version — see
+   `M-: (alist-get 'project package--builtin-versions)` — add it to
+   `straight-built-in-pseudo-packages` in `init.el`; otherwise its clone
+   shadows the built-in library everywhere. geiser needed `project`,
+   which pulled `xref`. Any other dependency gets pinned as in steps 1
+   and 2. Either way delete `straight/repos/<repo>` and
+   `straight/build/<package>`, then repeat steps 3 and 4 until the list
+   is empty.
+
+5. **Restart Emacs** and commit the lockfile with the module.
+
 For a dependency of a manually cloned external under `~/src/`, call
 `(straight-use-package 'dep)` *before* the `(require ...)`.
 
-Then `M-x straight-freeze-versions` and commit the lockfile. It first
-tries to push local changes and then asks `The following packages were
-not pushed: … Really write lockfiles?` — answer **yes**. Not an error:
-straight wants every pinned SHA to exist upstream, and these are other
-people's repos with nowhere to push.
+Removing: delete the `use-package` form, run
+`M-x straight-remove-unused-repos`, then `M-x straight-freeze-versions`
+and commit the lockfile. Freeze first tries to push local changes and
+then asks `The following packages were not pushed: … Really write
+lockfiles?` — answer **yes**. Not an error: straight wants every pinned
+SHA to exist upstream, and these are other people's repos with nowhere
+to push.
 
 Never `M-x package-install`. It bypasses the lockfile entirely and taints
 the session with package.el.
