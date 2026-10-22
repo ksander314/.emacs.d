@@ -18,11 +18,11 @@
   (interactive)
   (if markdown-hide-markup
       (progn
-        (markdown-toggle-markup-hiding)
+        (markdown-toggle-markup-hiding -1)
         (setq-local markdown-header-scaling nil)
         (markdown-update-header-faces markdown-header-scaling)
         (variable-pitch-mode -1))
-    (markdown-toggle-markup-hiding)
+    (markdown-toggle-markup-hiding 1)
     (setq-local markdown-header-scaling t)
     (markdown-update-header-faces markdown-header-scaling)
     (variable-pitch-mode 1)))
