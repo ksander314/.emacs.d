@@ -1,4 +1,11 @@
 ;;; init-zig.el --- Zig configuration -*- lexical-binding: t -*-
+(declare-function eglot-format-buffer "eglot")
+(declare-function eglot-inlay-hints-mode "eglot")
+(declare-function eglot-managed-p "eglot")
+
+(defvar eglot-server-programs)
+(defvar treesit-language-source-alist)
+
 (use-package zig-mode
   :ensure t :defer t
   :custom
@@ -17,10 +24,12 @@
         '("https://github.com/tree-sitter-grammars/tree-sitter-zig")))
 
 (defun my/zig-before-save ()
+  "Format the buffer through eglot before saving, when eglot manages it."
   (when (eglot-managed-p)
     (ignore-errors (eglot-format-buffer))))
 
 (defun my/zig-eglot-managed ()
+  "Turn on inlay hints in a Zig buffer once eglot manages it."
   (when (and (derived-mode-p 'zig-mode 'zig-ts-mode) (eglot-managed-p))
     (ignore-errors (eglot-inlay-hints-mode))))
 
@@ -31,6 +40,7 @@
 ;; graph is wired up. Run from the build.zig root so error paths resolve, and
 ;; force a pipe (clean ASCII output -- see `my/zig-compile-via-pipe' below).
 (defun my/zig--build (subcmd)
+  "Run `zig build SUBCMD' from the nearest build.zig root, through a pipe."
   (let ((default-directory (or (locate-dominating-file
                                 (or (buffer-file-name) default-directory)
                                 "build.zig")
@@ -49,6 +59,7 @@
   (my/zig--build "test"))
 
 (defun my/zig-setup ()
+  "Set up a Zig buffer: eglot when zls exists, editing modes, build keys."
   (require 'zig-mode)
   (when (executable-find "zls")
     (condition-case err (eglot-ensure)
@@ -73,6 +84,7 @@
 ;; with raw escape garbage. Piped, zig emits clean ASCII tree output and no
 ;; escapes, so force a pipe for the zig build commands.
 (defun my/zig-compile-via-pipe (orig &rest args)
+  "Call ORIG with ARGS so its process runs through a pipe, not a pty."
   (let ((process-connection-type nil))
     (apply orig args)))
 (with-eval-after-load 'zig-mode
