@@ -1,4 +1,13 @@
 ;;; init-agent-shell.el --- Agent-shell configuration -*- lexical-binding: t -*-
+(require 'map)
+
+(declare-function agent-shell--current-model-id "agent-shell-config")
+(declare-function agent-shell--get-available-models "agent-shell-config")
+(declare-function agent-shell-make-environment-variables "agent-shell")
+(declare-function agent-shell-submit "agent-shell")
+(declare-function agent-shell-subscribe-to "agent-shell")
+(declare-function agent-shell-unsubscribe "agent-shell")
+
 (use-package agent-shell
   :ensure t
   :bind (("C-c A" . agent-shell)
@@ -43,41 +52,43 @@
   (define-key agent-shell-mode-map (kbd "<return>") #'newline)
   (define-key agent-shell-mode-map (kbd "M-RET") #'agent-shell-submit)
   (define-key agent-shell-mode-map (kbd "<M-return>") #'agent-shell-submit)
-  ;; Reveal the concrete model in the header.  No option's :name carries a
-  ;; version -- they read "Default (recommended)", "Opus (1M context)",
-  ;; "Sonnet", "Haiku" -- while every :description leads with the real one
-  ;; ("Opus 5 with 1M context", "Sonnet 5", "Haiku 4.5") before a " · "
-  ;; marketing tail.  So prefer the description's head for every option, not
-  ;; just the generic "default": gating on "default" broke the moment
-  ;; ANTHROPIC_MODEL pinned a concrete id (model-id became "opus[1m]", whose
-  ;; :name is likewise version-less).  Falls back to :name when an option
-  ;; carries no description.
-  (defun my/agent-shell-concrete-model-name (orig-fn state)
-    "Around-advice for `agent-shell-get-model-name'.
+  (advice-add 'agent-shell-get-model-name :around
+              #'my/agent-shell-concrete-model-name)
+  (setq agent-shell-chat-label-function #'my/agent-shell-chat-label))
+
+;; Reveal the concrete model in the header.  No option's :name carries a
+;; version -- they read "Default (recommended)", "Opus (1M context)",
+;; "Sonnet", "Haiku" -- while every :description leads with the real one
+;; ("Opus 5 with 1M context", "Sonnet 5", "Haiku 4.5") before a " · "
+;; marketing tail.  So prefer the description's head for every option, not
+;; just the generic "default": gating on "default" broke the moment
+;; ANTHROPIC_MODEL pinned a concrete id (model-id became "opus[1m]", whose
+;; :name is likewise version-less).  Falls back to :name when an option
+;; carries no description.
+(defun my/agent-shell-concrete-model-name (orig-fn state)
+  "Around-advice for `agent-shell-get-model-name'.
 Return the concrete model taken from the current option's :description
 \(the segment before \" · \"), falling back to ORIG-FN's name for STATE
 when no description is advertised."
-    (let ((name (funcall orig-fn state))
-          (model-id (agent-shell--current-model-id state)))
-      (if-let* ((model (seq-find (lambda (m)
-                                   (equal (map-elt m :model-id) model-id))
-                                 (agent-shell--get-available-models state)))
-                (desc (map-elt model :description))
-                (concrete (string-trim (car (split-string desc "·"))))
-                ((not (string-empty-p concrete))))
-          concrete
-        name)))
-  (advice-add 'agent-shell-get-model-name :around
-              #'my/agent-shell-concrete-model-name)
-  (defun my/agent-shell-chat-label (label)
-    "Draw chat LABEL like the default badge, with my first name for \"Me\"."
-    (let ((user (eq (map-elt label :role) 'user)))
-      (propertize (format " %s " (or (and user (car (split-string user-full-name)))
-                                     (map-elt label :text)))
-                  'face (if user
-                            'agent-shell-chat-me-label
-                          'agent-shell-chat-agent-label))))
-  (setq agent-shell-chat-label-function #'my/agent-shell-chat-label))
+  (let ((name (funcall orig-fn state))
+        (model-id (agent-shell--current-model-id state)))
+    (if-let* ((model (seq-find (lambda (m)
+                                 (equal (map-elt m :model-id) model-id))
+                               (agent-shell--get-available-models state)))
+              (desc (map-elt model :description))
+              (concrete (string-trim (car (split-string desc "·"))))
+              ((not (string-empty-p concrete))))
+        concrete
+      name)))
+
+(defun my/agent-shell-chat-label (label)
+  "Draw chat LABEL like the default badge, with my first name for \"Me\"."
+  (let ((user (eq (map-elt label :role) 'user)))
+    (propertize (format " %s " (or (and user (car (split-string user-full-name)))
+                                   (map-elt label :text)))
+                'face (if user
+                          'agent-shell-chat-me-label
+                        'agent-shell-chat-agent-label))))
 
 
 ;;; Stop the graphical header from cutting its own text off
@@ -107,7 +118,7 @@ when no description is advertised."
 ;; render the wdth=200 instance pango picks.
 
 (defvar my/agent-shell-header-font-family "Menlo"
-  "Font family declared in the agent-shell header SVG, or nil to keep the default.
+  "Font family declared in the `agent-shell' header SVG, or nil for the default.
 Must be a family librsvg and Emacs measure alike: ten \"M\" at font-size
 18 come to 108px under librsvg and 110px under Emacs for Menlo, against
 179 vs 90 for Inconsolata.  Erring high is the safe direction -- the
@@ -175,7 +186,7 @@ variable font librsvg renders at twice Emacs' advance width."
 ;;; Persistent alert stack for agent-shell
 
 (defvar my/agent-alerts nil
-  "Stack of active agent-shell alerts.
+  "Stack of active `agent-shell' alerts.
 Each element is a plist (:type :message :buffer :time).")
 
 (defvar my/agent-alert--subscriptions nil
@@ -205,7 +216,7 @@ Each element is a plist (:type :message :buffer :time).")
        (get-buffer-window buf t)))
 
 (defun my/agent-alert-push (type message shell-buffer)
-  "Add an alert to the stack and refresh display.
+  "Push an alert of TYPE with MESSAGE about SHELL-BUFFER and refresh the stack.
 Skip if SHELL-BUFFER is already visible in a window."
   (unless (my/agent-alert--buffer-visible-p shell-buffer)
     (push (list :type type :message message :buffer shell-buffer
@@ -214,7 +225,7 @@ Skip if SHELL-BUFFER is already visible in a window."
     (my/agent-alert-refresh)))
 
 (defun my/agent-alert-goto ()
-  "Dismiss alert at point and switch to its agent-shell buffer."
+  "Dismiss alert at point and switch to its `agent-shell' buffer."
   (interactive)
   (when-let* ((alert (get-text-property (point) 'my/alert)))
     (let ((buf (plist-get alert :buffer)))
@@ -242,7 +253,7 @@ Skip if SHELL-BUFFER is already visible in a window."
     map))
 
 (define-derived-mode my/agent-alert-list-mode special-mode "Alerts"
-  "Major mode for the agent-shell persistent alert stack.
+  "Major mode for the `agent-shell' persistent alert stack.
 \\<my/agent-alert-list-mode-map>
 RET / click  dismiss alert and switch to its shell buffer
 d            same as RET
@@ -280,7 +291,7 @@ q            dismiss all alerts"
              (window-parameters . ((no-delete-other-windows . t))))))))
 
 (defun my/agent-alert-subscribe ()
-  "Subscribe to agent-shell events in the current buffer."
+  "Subscribe to `agent-shell' events in the current buffer."
   (let ((buf (current-buffer)))
     (my/agent-alert-unsubscribe buf)
     (setf (alist-get buf my/agent-alert--subscriptions)
@@ -318,7 +329,5 @@ q            dismiss all alerts"
 
 (add-hook 'window-buffer-change-functions #'my/agent-alert-auto-dismiss)
 (add-hook 'window-selection-change-functions #'my/agent-alert-auto-dismiss)
-
-(require 'map)
 
 (provide 'init-agent-shell)
