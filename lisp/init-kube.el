@@ -4,6 +4,8 @@
 ;; Path syntax: /kube:NAMESPACE.CONTEXT@POD:/path/to/file
 ;; Example:     /kube:tv-dashboard.dal2.staging@dashboard-testing-abc123:/app/main.go
 
+(defvar tramp-methods)
+
 (with-eval-after-load 'tramp
   (let ((program (expand-file-name "bin/kube-tramp" user-emacs-directory)))
     (add-to-list 'tramp-methods

@@ -25,7 +25,7 @@
 
 (defun my/zig-before-save ()
   "Format the buffer through eglot before saving, when eglot manages it."
-  (when (eglot-managed-p)
+  (when (and (fboundp 'eglot-managed-p) (eglot-managed-p))
     (ignore-errors (eglot-format-buffer))))
 
 (defun my/zig-eglot-managed ()

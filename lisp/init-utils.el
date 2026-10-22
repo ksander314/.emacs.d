@@ -1,4 +1,6 @@
 ;;; init-utils.el --- Utility functions -*- lexical-binding: t -*-
+(declare-function ffap-string-at-point "ffap")
+
 (defun my/delete-this-file ()
   "Delete the current file, and kill the buffer."
   (interactive)
@@ -31,6 +33,7 @@
 (defun my/ffap-with-line ()
   "Like `ffap' but handles file:line format."
   (interactive)
+  (require 'ffap)
   (let ((thing (ffap-string-at-point)))
     (if (and thing (string-match "\\([^:]+\\):\\([0-9]+\\)" thing))
         (let ((file (match-string 1 thing))

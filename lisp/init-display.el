@@ -1,4 +1,6 @@
 ;;; init-display.el --- Display configuration -*- lexical-binding: t -*-
+(defvar display-line-numbers-type)
+
 (setq display-line-numbers-type 'relative)
 (global-display-line-numbers-mode 1)
 

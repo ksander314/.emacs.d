@@ -256,8 +256,7 @@ alone, so the intervals between keys stay what they were."
         (prev-event nil) (prev-char nil) (prev-prev-char nil))
     (dolist (row rows)
       (let ((event (nth 1 row))
-            (char (nth 2 row))
-            (pchar (nth 3 row)))
+            (char (nth 2 row)))
         (when (and (string= event "backspace")
                    prev-char prev-prev-char
                    (string= prev-event "char"))
